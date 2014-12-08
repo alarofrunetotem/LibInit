@@ -14,4 +14,4 @@
 ## X-eMail: alar@aspide.it
 ## X-Date: @project-date-iso@
 ## X-Embeds:
-libinit/core.xml
+LibInit.xml

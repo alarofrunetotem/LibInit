@@ -103,6 +103,7 @@ L["Toggles"] = "Interruttori"
 end
 if true then return end
 --@end-do-not-package@
+local L=l:NewLocale(me,"enUS",true,true)
 --@localization(locale="enUS", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
 L=l:NewLocale(me,"ptBR")
 if (L) then
