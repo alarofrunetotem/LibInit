@@ -1,4 +1,21 @@
-print("Loading libinit")
+--- **LibInit** should make using Ace3 even more easier and pleasant
+-- LibInit pulls Ace 3 for you if you use the curse packager and set it this way:
+--
+-- Inside your .pkgmeta
+-- externals:
+-- 		libs/LibInit:
+--			url: git://git.curseforge.net/wow/libinit/mainline.git/Libs/LibInit
+--
+-- Inside your toc
+-- libs/LibInit/LibInit.xml
+--
+-- @usage
+-- me,ns=...
+-- local myAddon=LibStub("LibInit):NewAddon(me,true) to pull all Ace3 embeddable
+-- local myAddon=LibStub("LibInit):NewAddon(me,"AceHook-3.0","Someotherembeddablelibrary",...) to specify your needede embed
+-- local myAddon=LibStub("LibInit):NewAddon(me,true,"Someotherembeddablelibrary",...) to pull all Ace3 embeddable and adding more libraries
+-- @class file
+-- @name LibInit
 local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 1
 local me, ns = ...
@@ -1466,4 +1483,3 @@ end
 for target,_ in pairs(lib.mixinTargets) do
 	lib:Embed(target)
 end
-
