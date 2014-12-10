@@ -18,6 +18,7 @@
 -- @name LibInit
 local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 1
+print("Loading",MAJOR_VERSION,MINOR_VERSION)
 local me, ns = ...
 local LibStub=LibStub
 local module,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
@@ -70,6 +71,9 @@ local AceRegistry = LibStub("AceConfigRegistry-3.0",true)
 local AceDBOptions=LibStub("AceDBOptions-3.0",true)
 local AceConfigDialog=LibStub("AceConfigDialog-3.0",true)
 local AceGUI=LibStub("AceGUI-3.0",true)
+local Ace=LibStub("AceAddon-3.0")
+local AceLocale=LibStub("AceLocale-3.0")
+local AceDB  = LibStub("AceDB-3.0",true)
 
 -- Recycling function from ACE3
 ----newcount, delcount,createdcount,cached = 0,0,0
@@ -107,10 +111,15 @@ do
 --		return n
 --	end
 end
+--- This storage must survive a library update
+lib.mixinTargets=lib.mixinTargets or {}
+lib.combatSchedules = lib.combatSchedules or {}
+lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
+lib.debugs=lib.debugs or {}
+
 function lib:NewAddon(name,full,...)
-	local ACE=LibStub("AceAddon-3.0")
-	if (not ACE) then
-		error("Could not find ACE-3 Library")
+	if (not Ace) then
+		error("Could not find Ace-3 Library")
 		return
 	end
 	local mixins=new()
@@ -123,9 +132,9 @@ function lib:NewAddon(name,full,...)
 	end
 	tinsert(mixins,MAJOR_VERSION)
 	for i=1,select('#',...) do tinsert(mixins,(select(i,...))) end
-	local target=ACE:NewAddon(name,unpack(mixins))
+	local target=Ace:NewAddon(name,unpack(mixins))
 	del(mixins)
-	target.tocversion=GetAddOnMetadata(name,"interface")
+	target.interface=select(4,GetBuildInfo())
 	target.version=GetAddOnMetadata(name,'Version')
 	if (target.version:sub(1,1)=='@') then
 		target.version=GetAddOnMetadata(name,'X-Version') or 0
@@ -135,7 +144,6 @@ function lib:NewAddon(name,full,...)
 		target.revision='Development'
 	end
 	target.prettyversion=format("%s (Revision: %s)",tostringall(target.version,target.revision))
-	target.numericversion=tonumber(target.version) or 0
 	target.title=GetAddOnMetadata(name,"title") or 'No title'
 	target.notes=GetAddOnMetadata(name,"notes") or 'No notes'
 	-- Setting sensible default for mandatory fields
@@ -143,9 +151,64 @@ function lib:NewAddon(name,full,...)
 	target.DATABASE=GetAddOnMetadata(name,"X-Database") or "db" .. target.ID
 	return target
 end
-function lib:GetLocale()
-	return LibStub("AceLocale-3.0"):GetLocale(self.name)
+function lib:GetAddon(name)
+	return Ace:GetAddon(name,true)
 end
+function lib:GetLocale()
+	return AceLocale:GetLocale(self.name)
+end
+local function GetChatFrame(chat)
+	if (chat) then
+		for i=1,NUM_CHAT_WINDOWS do
+			local frame=_G["ChatFrame" .. i]
+			if (not frame) then break end
+			if (frame.name==chat) then return frame end
+		end
+		return nil
+	end
+	return DEFAULT_CHAT_FRAME
+end
+function lib:GetPrintFunctions(caller,skip)
+	local result
+	if (type(skip)=='table') then result=skip else wipe(tab) result=tab end
+	do
+		local GetChatFrame=GetChatFrame
+		local caller=tostring(caller) or ''
+		local skip=tonumber(skip) or 1
+		local prefixp=caller .. ':|r|cff20ff20'
+		local prefixd='|cffff1010DBG:' .. caller .. ':|r|cff00ff00'
+		local prefixs='|cffff1010DBS:' .. caller .. ':|r|cff00ff00'
+		local prefixn=caller .. ':|r|cffff9900'
+		local prefixe=caller .. '-Error:|r|cffff0000'
+		local xformat=xformat
+		local debugs=self.debugs
+		debugs[caller]=true
+		function result.print(...) pp(prefixp,xformat(select(skip,...))) end
+		function result.dump(value,desc)
+				desc=desc or "Debug dump"
+				pp(prefixp ,desc)
+				dumpdata(value)
+				if (_G.DOVEDIAVOLOSTA) then
+					pp(tostring(debugstack(2,1,0)))
+				end
+		end
+		function result.debug(...)
+			if (debugs[caller]) then
+				local c = GetChatFrame("ADebug")
+				if (c) then c:AddMessage(strjoin(' ',date("%X"),prefixd,xformat(select(skip,...))),tostring(debugstack(2,1,0))) end
+			end
+		end
+		function result.sdebug(...)
+				local c = GetChatFrame("ADebug")
+				if (c) then c:AddMessage(strjoin(' ',date("%X"),prefixs,xformat(select(skip,...))),tostring(debugstack(2,1,0))) end
+		end
+		function result.notify(...) pp(prefixn,xformat(select(skip,...))) end
+		function result.error(...) pp(prefixe,xformat(select(skip,...))) end
+		function result.debugEnable(...) if (select(skip,...)) then debugs[caller] = true else debugs[caller] =false end end
+	end
+	return result
+end
+
 function lib:Print(...)
 	if (type(self) ~= "table") then
 		print(lib,self,...)
@@ -153,22 +216,8 @@ function lib:Print(...)
 		print(self,...)
 	end
 end
-lib.mixinTargets=lib.mixinTargets or {}
-lib.combatSchedules = lib.combatSchedules or {}
-lib.frame=lib.frame or CreateFrame("Frame")
+
 local combatSchedules = lib.combatSchedules
-local function str2num(versione)
-	versione =versione or 0
-	if (type(versione) == "string") then
-		local a,b,c=versione:match("(%d*)%D?(%d*)%D?(%d*)%D*")
-		a=tonumber(a) or 0
-		b=tonumber(b) or 0
-		c=tonumber(c) or 0
-		return a*1000+b+c/100
-	else
-		return versione
-	end
-end
 -- Gestione variabili
 local varmeta={}
 do
@@ -193,32 +242,7 @@ do
 		end
 	}
 end
-local function versiontonumber(version)
-		if (type(version)=="number") then
-				return version
-		end
-		local s,e,svn=version:find("$Rev%D*(%d+)%D*%$")
-		version=version:gsub("$Rev%D*(%d+)%D*%$","")
-		local res=0
-		local fractpart=0
-		local mult=1
-		for i in version:gmatch("%d+") do
-				local n=tonumber(i) or 0
-				if (n < 1000) then
-						res=res*1000
-						res=res+n
-				end
-		end
-		return tonumber(res .. '.' .. (svn or '0'))
-end
-function lib:VersionCompare(otherversion,strict)
-		local oterhversion=versiontonumber(otherversion)
-		if (strict) then
-				return self.numericversion-otherversion
-		else
-				return floor(self.numericversion - otherversion)
-		end
-end
+
 local Myclass
 ---
 -- Check if the unit in target hast the requested clas
@@ -368,8 +392,33 @@ function lib:GetDistance(a,b)
 				return 99999
 		end
 end
+---
+-- Returns a numeric representation of version.
+-- Can be overridden
+-- In default incarnation assumes that version is in the form x,y,z
+-- @return z+y*100+x*10000
+--
+function lib:NumericVersion()
+	local v=tonumber(self.version)
+	if (v) then return v end
+	if (type(self.version) == "string") then
+		local a,b,c=self.version:match("(%d*)%D?(%d*)%D?(%d*)%D*")
+		a=tonumber(a) or 0
+		b=tonumber(b) or 0
+		c=tonumber(c) or 0
+		return a*10000+b*100+c
+	else
+		return 0
+	end
+end
 function lib:OnInitialized()
 	print(L["You should at least override this function to make a working addon"])
+end
+function lib:LoadHelp()
+end
+function lib:SetDbDefaults()
+end
+function lib:SetOptionsTable()
 end
 local function LoadDefaults(self)
 	self.OptionsTable={
@@ -412,11 +461,9 @@ local function LoadDefaults(self)
 	}
 	self.DbDefaults={
 		global={
-			currentversion=self.version,
 			firstrun=true,
 			lastversion=0,
-			lastinterface=60000,
-
+			lastinterface=60000
 		},
 		profile={
 			toggles={
@@ -432,10 +479,38 @@ local function LoadDefaults(self)
 		end
 		}
 	)
-	local AceDB  = LibStub("AceDB-3.0",true) or debug("Missing AceDB-3.0")
+end
+local function BuildHelp(self)
+	local main=self.name
+	for _,section in ipairs(HELPSECTIONS) do
+		if (section == RELNOTES) then
+			self:HF_Load(section,main..section,' ' .. tostring(self.version) .. ' (r:' .. tostring(self.revision) ..')')
+		else
+			self:HF_Load(section,main .. section,'')
+		end
+	end
+end
+function lib:IsFirstRun()
+	return self.db.global.firstrun
+end
+function lib:IsNewVersion()
+	return self.numericversion > self.db.global.lastnumericversion and self.db.global.lastnumericversion or false
+end
+function lib:IsNewTocVersion()
+	return self.interface > self.db.global.lastinterface  and self.db.global.lastinterface or false
+end
+function lib:OnInitialize(...)
+--@debug@
+	LoadAddOn("Blizzard_DebugTools")
+--@end-debug@
+	self.numericversion=self:NumericVersion() -- Initialized now becaus NumericVersion could be overrided
+	--CachedGetItemInfo=self:GetCachingGetItemInfo()
+	self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
+	LoadDefaults(self)
+	local defaultProfile=self:SetDbDefaults(self.DbDefaults)
+	self:SetOptionsTable(self.OptionsTable)
 	if (AceDB and not self.db) then
-		self.db=AceDB:New(self.DATABASE)
-		--self.localdb=self.db:RegisterNamespace(self.name)
+		self.db=AceDB:New(self.DATABASE,nil,defaultProfile)
 	end
 	self.db:RegisterDefaults(self.DbDefaults)
 	self:SetEnabledState(self:GetBoolean("Active"))
@@ -446,34 +521,7 @@ local function LoadDefaults(self)
 			lib:OnEmbedPreInitialize(self)
 		end
 	end
-end
-local function LoadHelp(self)
-	local main=self.name
---@debug@
-	for libname,k in LibStub:IterateLibraries() do
-		if (libname:match("Ace%w*-3%.0")) then
-			self:HF_Lib(libname,'yellow')
-		elseif (libname:match("Ace%w*-2%.0")) then
-			self:HF_Lib(libname,'yellow')
-		elseif (libname:match("Alar%w*-3%.0")) then
-			self:HF_Lib(libname,'green')
-		else
-			self:HF_Lib(libname,'gray')
-		end
-	end
---@end-debug@
-	for _,section in ipairs(HELPSECTIONS) do
-		if (section == RELNOTES) then
-			self:HF_Load(section,main..section,' ' .. tostring(self.version) .. ' (r:' .. tostring(self.revision) ..')')
-		else
-			self:HF_Load(section,main .. section,'')
-		end
-	end
-end
-function lib:OnInitialize(...)
-	CachedGetItemInfo=self:GetCachingGetItemInfo()
-	self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
-	LoadDefaults(self)
+
 	self.help=setmetatable(
 			{},
 			{__index=function(table,key)
@@ -488,23 +536,35 @@ function lib:OnInitialize(...)
 		self.OptionsTable.args.off=nil
 		self.OptionsTable.args.standby=nil
 	end
+	if (type(self.LoadHelp)=="function") then self:LoadHelp() end
 	local main=self.name
-	local profile
-	if (AceDBOptions) then
-		self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
-		titles.PROFILE=self.ProfileOpts.name
-		self.ProfileOpts.name=self.name
-		profile=main..PROFILE
-	end
-	LoadHelp(self)
+	BuildHelp(self)
 	AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(self.ID)})
 	self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
-	if (profile and not ignoreProfile) then
+	if (not ignoreProfile) then
+		if (AceDBOptions) then
+			self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
+			titles.PROFILE=self.ProfileOpts.name
+			self.ProfileOpts.name=self.name
+			local profile=main..PROFILE
+		end
 		AceConfig:RegisterOptionsTable(main .. PROFILE,self.ProfileOpts)
 		AceConfigDialog:AddToBlizOptions(main .. PROFILE,titles.PROFILE,main)
 	end
 	if (self.help[RELNOTES]~='') then
 		self.CfgRel=AceConfigDialog:AddToBlizOptions(main..RELNOTES,titles.RELNOTES,main)
+	end
+	self:UpdateVersion()
+end
+function lib:UpdateVersion()
+	if (type(self.db.char) == "table") then
+		self.db.char.lastversion=self.numericversion
+		self.db.char.firstun=false
+	end
+	if (type(self.db.global)=="table") then
+		self.db.global.lastversion=self.numericversion
+		self.db.global.firstrun=false
+		self.db.global.lastinterface=self.interface
 	end
 end
 
@@ -755,6 +815,7 @@ function lib:AddBoolean(flag,defaultvalue,name,description,icon)
 			get="OptToggleGet",
 			set="OptToggleSet",
 			desc=description,
+			width='full',
 			arg=flag,
 			cmdHidden=true,
 			icon=icon,
@@ -835,6 +896,7 @@ function lib:AddSelect(flag,defaultvalue,values,name,description)
 			get="OptToggleGet",
 			set="OptToggleSet",
 			desc=description,
+			width="full",
 			values=values,
 			arg=flag,
 			cmdHidden=true,
@@ -1005,31 +1067,10 @@ function lib:OnEmbedDisable()
 end
 
 
-function lib:UpdateVersion()
-	if (type(self.db.char) == "table") then
-		self.db.char.version=str2num(self.version)
-	end
-	if (type(self.db.global)=="table") then
-		self.db.global.lastversion=self.version
-		self.db.global.firstrun=false
-		self.db.global.lastinterface=self:GetTocVersion()
-	end
-end
-function lib:IsNewVersion()
-	return str2num(self.version) > str2num(self.db.char.version)
-end
-function lib:VersionIsAtLeast(compareto)
-	return str2num(compareto) >= str2num(self.version)
-end
-
 function lib:OnEnable(first,...)
-	if (self.notfirst) then
-		self:Print("enabled")
-		self.notfirst=true
-	end
-		self.print("enabled")
+	self:Print("enabled")
 	self:ApplySettings()
-	pcall(self.OnEnabled,self,not self.notfirst,...)
+	pcall(self.OnEnabled,self)
 end
 function lib:OnDisable(...)
 	self.print(C("disabled",'red'))
@@ -1148,6 +1189,17 @@ function lib:GetVar(flag)
 end
 function lib:SetVar(flag,value)
 	return self:GetSet(flag,value)
+end
+function lib:Trigger(flag,value)
+	if (type(var)=='boolean') then
+		self:SetBoolean(flag,value)
+	else
+		self:GetSet(flag,value)
+	end
+	if (self:IsEnabled()) then
+		self._Apply[flag](self,flag,value)
+	end
+
 end
 function lib:OptToggleSet(info,value)
 	local flag=info.option.arg
@@ -1339,10 +1391,12 @@ end
 -- This function get called on addon creation
 -- Anything I define here is immediately available to addon code
 function lib:Embed(target)
-	LibStub("AlarLoader-3.0"):GetPrintFunctions(title,target)
+	self:GetPrintFunctions(self.title,target)
 	-- Standard libins
 	for name,method in pairs(lib) do
-			target[name] = method
+			if (name~="NewAddon" and name~="GetAddon") then
+				target[name] = method
+			end
 	end
 	target._Apply=target._Apply or {}
 	target._Apply._handler=target

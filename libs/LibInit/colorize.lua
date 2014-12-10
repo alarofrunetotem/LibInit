@@ -1,14 +1,33 @@
 local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 1
----
--- A minimal Crayon like implementation
---
+--- A minimal Crayon like implementation
 -- C.Azure.c returns a string "rrggbb"
 -- tostring(C.Azure) returns a string "rrggbb"
 -- "aa" .. C.Azure can be done and returns "aarrggbb"
 -- C.Azure() returns r,g,b as float list
 -- C.Azure.r returns r as float
 -- C("testo","azure") returns "|cff" .. >color code for azure> .. "test" .. "|r"
+--
+-- @usage local C=LibStub("LibInit"):GetColorTable()
+-- For a list of available color check Colors
+-- Each color became the name of a metod
+-- @name C.Azure()
+-- @return r,g,b
+--
+-- @name C.Azure.r
+-- @return red value
+-- @name C.Azure.g
+-- @return green value
+-- @name C.Azure.b
+-- @return blue value
+-- @name C.Azure.c
+-- @return hex string "rrggbb"
+-- @name tostring(C.Azure(
+-- @return hex string "rrggbb"
+-- @name C(testo,colore)
+-- @return "|cff" .. >color code for azure> .. "test" .. "|r"
+--
+
 
 -- Color system related function
 local C
@@ -28,7 +47,9 @@ local _G=_G
 local UIERRORS_HOLD_TIME=UIERRORS_HOLD_TIME or 1
 local UIErrorsFrame=UIErrorsFrame
 local ChatTypeInfo=ChatTypeInfo
-
+--- Available colors
+-- @class table
+-- @name Colors
 lib.colors={
 azure                   ="0c92dc"
 ,black                  ="000000"
