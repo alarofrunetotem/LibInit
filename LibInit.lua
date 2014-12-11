@@ -497,6 +497,9 @@ end
 function lib:IsNewTocVersion()
 	return self.interface > self.db.global.lastinterface  and self.db.global.lastinterface or false
 end
+function lib:RegisterDatabase(dbname,defaults,profile)
+	return AceDB:New(dbname,defaults,profile)
+end
 function lib:OnInitialize(...)
 	titles={
 		RELNOTES=L["Release Notes"],
