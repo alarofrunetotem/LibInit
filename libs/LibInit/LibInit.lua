@@ -1195,14 +1195,9 @@ end
 function lib:SetVar(flag,value)
 	return self:GetSet(flag,value)
 end
-function lib:Trigger(flag,value)
-	if (type(var)=='boolean') then
-		self:SetBoolean(flag,value)
-	else
-		self:GetSet(flag,value)
-	end
+function lib:Trigger(flag)
 	if (self:IsEnabled()) then
-		self._Apply[flag](self,flag,value)
+		self._Apply[flag](self,flag,self:GetVar(flag))
 	end
 
 end
@@ -1548,153 +1543,137 @@ local l=LibStub("AceLocale-3.0")
 local me=MAJOR_VERSION .. MINOR_VERSION
 --@do-not-package@
 -- Actual translations for test purpose
-local L=l:NewLocale(me,"enUS",true,true)
-L["Configuration"] = true
-L["Description"] = true
-L["Libraries"] = true
-L["Release Notes"] = true
-L["Toggles"] = true
-L=l:NewLocale(me,"ptBR")
-if (L) then
-L["Configuration"] = "configura\195\167\195\163o"
-L["Description"] = "Descri\195\167\195\163o"
-L["Libraries"] = "bibliotecas"
-L["Release Notes"] = "Notas de Lan\195\167amento"
-L["Toggles"] = "Alterna"
-return
+local Locale=l:NewLocale(me,"enUS",true,true)
+Locale["Configuration"] = true
+Locale["Description"] = true
+Locale["Libraries"] = true
+Locale["Release Notes"] = true
+Locale["Toggles"] = true
+Locale=l:NewLocale(me,"ptBR")
+if (Locale) then
+Locale["Configuration"] = "configura\195\167\195\163o"
+Locale["Description"] = "Descri\195\167\195\163o"
+Locale["Libraries"] = "bibliotecas"
+Locale["Release Notes"] = "Notas de Lan\195\167amento"
+Locale["Toggles"] = "Alterna"
 end
-L=l:NewLocale(me,"frFR")
-if (L) then
-L["Configuration"] = "configuration"
-L["Description"] = "description"
-L["Libraries"] = "biblioth\195\168ques"
-L["Release Notes"] = "notes de version"
-L["Toggles"] = "Bascule"
-return
+Locale=l:NewLocale(me,"frFR")
+if (Locale) then
+Locale["Configuration"] = "configuration"
+Locale["Description"] = "description"
+Locale["Libraries"] = "biblioth\195\168ques"
+Locale["Release Notes"] = "notes de version"
+Locale["Toggles"] = "Bascule"
 end
-L=l:NewLocale(me,"deDE")
-if (L) then
-L["Configuration"] = "Konfiguration"
-L["Description"] = "Beschreibung"
-L["Libraries"] = "Bibliotheken"
-L["Release Notes"] = "Release Notes"
-L["Toggles"] = "Schaltet"
-return
+Locale=l:NewLocale(me,"deDE")
+if (Locale) then
+Locale["Configuration"] = "Konfiguration"
+Locale["Description"] = "Beschreibung"
+Locale["Libraries"] = "Bibliotheken"
+Locale["Release Notes"] = "Release Notes"
+Locale["Toggles"] = "Schaltet"
 end
-L=l:NewLocale(me,"koKR")
-if (L) then
-L["Configuration"] = "\234\181\172\236\132\177"
-L["Description"] = "\236\132\164\235\170\133"
-L["Libraries"] = "\235\157\188\236\157\180\235\184\140\235\159\172\235\166\172"
-L["Release Notes"] = "\235\166\180\235\166\172\236\138\164 \235\133\184\237\138\184"
-L["Toggles"] = "\236\160\132\237\153\152"
-return
+Locale=l:NewLocale(me,"koKR")
+if (Locale) then
+Locale["Configuration"] = "\234\181\172\236\132\177"
+Locale["Description"] = "\236\132\164\235\170\133"
+Locale["Libraries"] = "\235\157\188\236\157\180\235\184\140\235\159\172\235\166\172"
+Locale["Release Notes"] = "\235\166\180\235\166\172\236\138\164 \235\133\184\237\138\184"
+Locale["Toggles"] = "\236\160\132\237\153\152"
 end
-L=l:NewLocale(me,"esMX")
-if (L) then
-L["Configuration"] = "Configuraci\195\179n"
-L["Description"] = "Descripci\195\179n"
-L["Libraries"] = "Bibliotecas"
-L["Release Notes"] = "Notas de la versi\195\179n"
-L["Toggles"] = "Alterna"
-return
+Locale=l:NewLocale(me,"esMX")
+if (Locale) then
+Locale["Configuration"] = "Configuraci\195\179n"
+Locale["Description"] = "Descripci\195\179n"
+Locale["Libraries"] = "Bibliotecas"
+Locale["Release Notes"] = "Notas de la versi\195\179n"
+Locale["Toggles"] = "Alterna"
 end
-L=l:NewLocale(me,"ruRU")
-if (L) then
-L["Configuration"] = "\208\154\208\190\208\189\209\132\208\184\208\179\209\131\209\128\208\176\209\134\208\184\209\143"
-L["Description"] = "\208\158\208\191\208\184\209\129\208\176\208\189\208\184\208\181"
-L["Libraries"] = "\208\145\208\184\208\177\208\187\208\184\208\190\209\130\208\181\208\186\208\184"
-L["Release Notes"] = "\208\159\209\128\208\184\208\188\208\181\209\135\208\176\208\189\208\184\209\143 \208\186 \208\178\209\139\208\191\209\131\209\129\208\186\209\131"
-L["Toggles"] = "\208\159\208\181\209\128\208\181\208\186\208\187\209\142\209\135\208\181\208\189\208\184\208\181"
+Locale=l:NewLocale(me,"ruRU")
+if (Locale) then
+Locale["Configuration"] = "\208\154\208\190\208\189\209\132\208\184\208\179\209\131\209\128\208\176\209\134\208\184\209\143"
+Locale["Description"] = "\208\158\208\191\208\184\209\129\208\176\208\189\208\184\208\181"
+Locale["Libraries"] = "\208\145\208\184\208\177\208\187\208\184\208\190\209\130\208\181\208\186\208\184"
+Locale["Release Notes"] = "\208\159\209\128\208\184\208\188\208\181\209\135\208\176\208\189\208\184\209\143 \208\186 \208\178\209\139\208\191\209\131\209\129\208\186\209\131"
+Locale["Toggles"] = "\208\159\208\181\209\128\208\181\208\186\208\187\209\142\209\135\208\181\208\189\208\184\208\181"
 end
-L=l:NewLocale(me,"zhCN")
-if (L) then
-L["Configuration"] = "\233\133\141\231\189\174"
-L["Description"] = "\232\175\180\230\152\142"
-L["Libraries"] = "\229\155\190\228\185\166\233\166\134"
-L["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
-L["Toggles"] = "\229\136\135\230\141\162"
-return
+Locale=l:NewLocale(me,"zhCN")
+if (Locale) then
+Locale["Configuration"] = "\233\133\141\231\189\174"
+Locale["Description"] = "\232\175\180\230\152\142"
+Locale["Libraries"] = "\229\155\190\228\185\166\233\166\134"
+Locale["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
+Locale["Toggles"] = "\229\136\135\230\141\162"
 end
-L=l:NewLocale(me,"esES")
-if (L) then
-L["Configuration"] = "Configuraci\195\179n"
-L["Description"] = "Descripci\195\179n"
-L["Libraries"] = "Bibliotecas"
-L["Release Notes"] = "Notas de la versi\195\179n"
-L["Toggles"] = "Alterna"
-return
+Locale=l:NewLocale(me,"esES")
+if (Locale) then
+Locale["Configuration"] = "Configuraci\195\179n"
+Locale["Description"] = "Descripci\195\179n"
+Locale["Libraries"] = "Bibliotecas"
+Locale["Release Notes"] = "Notas de la versi\195\179n"
+Locale["Toggles"] = "Alterna"
 end
-L=l:NewLocale(me,"zhTW")
-if (L) then
-L["Configuration"] = "\233\133\141\231\189\174"
-L["Description"] = "\232\175\180\230\152\142"
-L["Libraries"] = "\229\155\190\228\185\166\233\166\134"
-L["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
-L["Toggles"] = "\229\136\135\230\141\162"
-return
+Locale=l:NewLocale(me,"zhTW")
+if (Locale) then
+Locale["Configuration"] = "\233\133\141\231\189\174"
+Locale["Description"] = "\232\175\180\230\152\142"
+Locale["Libraries"] = "\229\155\190\228\185\166\233\166\134"
+Locale["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
+Locale["Toggles"] = "\229\136\135\230\141\162"
 end
-L=l:NewLocale(me,"itIT")
-if (L) then
-L["Configuration"] = "Configurazione"
-L["Description"] = "Descrizione"
-L["Libraries"] = "Librerie"
-L["Release Notes"] = "Note di rilascio"
-L["Toggles"] = "Interruttori"
+Locale=l:NewLocale(me,"itIT")
+if (Locale) then
+Locale["Configuration"] = "Configurazione"
+Locale["Description"] = "Descrizione"
+Locale["Libraries"] = "Librerie"
+Locale["Release Notes"] = "Note di rilascio"
+Locale["Toggles"] = "Interruttori"
 end
+L=LibStub("AceLocale-3.0"):GetLocale(me,true)
+print("Loaded L")
 if true then return end
 --@end-do-not-package@
-local L=l:NewLocale(me,"enUS",true,true)
+local Locale=l:NewLocale(me,"enUS",true,true)
 --@localization(locale="enUS", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-L=l:NewLocale(me,"ptBR")
-if (L) then
+Locale=l:NewLocale(me,"ptBR")
+if (Locale) then
 --@localization(locale="ptBR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"frFR")
-if (L) then
+Locale=l:NewLocale(me,"frFR")
+if (Locale) then
 --@localization(locale="frFR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"deDE")
-if (L) then
+Locale=l:NewLocale(me,"deDE")
+if (Locale) then
 --@localization(locale="deDE", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"itIT")
-if (L) then
+Locale=l:NewLocale(me,"itIT")
+if (Locale) then
 --@localization(locale="itIT", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"koKR")
-if (L) then
+Locale=l:NewLocale(me,"koKR")
+if (Locale) then
 --@localization(locale="koKR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"esMX")
-if (L) then
+Locale=l:NewLocale(me,"esMX")
+if (Locale) then
 --@localization(locale="esMX", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"ruRU")
-if (L) then
+Locale=l:NewLocale(me,"ruRU")
+if (Locale) then
 --@localization(locale="ruRU", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"zhCN")
-if (L) then
+Locale=l:NewLocale(me,"zhCN")
+if (Locale) then
 --@localization(locale="zhCN", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"esES")
-if (L) then
+Locale=l:NewLocale(me,"esES")
+if (Locale) then
 --@localization(locale="esES", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=l:NewLocale(me,"zhTW")
-if (L) then
+Locale=l:NewLocale(me,"zhTW")
+if (Locale) then
 --@localization(locale="zhTW", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-return
 end
-L=LibStub("AceLocale-3.0"):GetLocale(MAJOR_VERSION .. MINOR_VERSION,true)
+L=LibStub("AceLocale-3.0"):GetLocale(me,true)
 print("Loaded L")
