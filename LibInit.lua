@@ -57,6 +57,8 @@ local GetAddOnMetadata=GetAddOnMetadata
 local format=format
 local tostringall=tostringall
 local tonumber=tonumber
+local strconcat=strconcat
+local strjoin=strjoin
 local cachedGetItemInfo
 --]]
 -- Help sections
@@ -129,7 +131,13 @@ function lib:NewAddon(name,full,...)
 		tinsert(mixins,full)
 	end
 	tinsert(mixins,MAJOR_VERSION)
-	for i=1,select('#',...) do tinsert(mixins,(select(i,...))) end
+	tinsert(mixins,"AceConsole-3.0")
+	for i=1,select('#',...) do
+		local mix=select(i,...)
+		if (mix ~="AceConsole-3.0") then
+			tinsert(mixins,mix)
+		end
+	end
 	local target=Ace:NewAddon(name,unpack(mixins))
 	del(mixins)
 	target.interface=select(4,GetBuildInfo())
@@ -205,14 +213,6 @@ function lib:GetPrintFunctions(caller,skip)
 		function result.debugEnable(...) if (select(skip,...)) then debugs[caller] = true else debugs[caller] =false end end
 	end
 	return result
-end
-
-function lib:Print(...)
-	if (type(self) ~= "table") then
-		print(lib,self,...)
-	else
-		print(self,...)
-	end
 end
 
 local combatSchedules = lib.combatSchedules
@@ -324,15 +324,6 @@ function lib:ScanBags(index,value,startbag,startslot)
 	return false
 end
 
-function lib:GetArg(msg,arg)
-	if (not msg) then
-		return nil
-	end
-	if (type(msg) == 'table' and msg.input ) then msg=msg.input end
-	if (type(msg) ~= 'string') then return end
-	if (not arg) then arg=1 end
-	return select(arg+1,strsplit(" ",msg))
-end
 function lib:Health(unit)
 		local totale=UnitHealthMax(unit) or 1
 		local corrente=UnitHealth(unit) or 1
@@ -1032,20 +1023,23 @@ end
 
 
 --self:AddCmd(flag,method,name,description)
-function lib:AddChatCmd(flag,method,name,description)
-	self:RegisterChatCommand(flag,method)
-	name=name or flag
-	description=description or name
+function lib:AddChatCmd(method,label,description)
+	if (not self.RegisterChatCommand) then
+		LibStub("AceConsole-3.0"):Embed(self)
+	end
+	label=label or method
+	self:RegisterChatCommand(label,method)
+	description=description or label
 
 	local group=getgroup(self)
 	local t={
-			name=C('/' .. flag ..  " (" .. description .. ")",'orange'),
+			name=C('/' .. label ..  " (" .. description .. ")",'orange'),
 			type="description",
 			order=getorder(self,group),
 			fontSize="medium",
 			width="full"
 	}
-	group.args[flag .. 'title']=t
+	group.args[label .. 'title']=t
 	return t
 end
 
@@ -1273,28 +1267,26 @@ function lib:CancelScheduledEvent(flag)
 end
 function lib:Trace(...)
 --@debug@
-	self:_Trace(false,...)
+	self:_Trace(false,0,...)
 --@end-debug@
 end
 function lib:FullTrace(...)
 	--@debug@
-	self:_Trace(true,...)
+	self:_Trace(true,0,...)
 	--@end-debug@
 end
-function lib:_Trace(ft,fmt,...)
-		local stack={strsplit("\n",debugstack(3,5,0))}
-	local info=stack[1]
-		local file,line,func=tostringall(strsplit(":",info))
-
-		local r,g,b=C.Yellow()
-		_G.DEFAULT_CHAT_FRAME:AddMessage(
-			format("Trace\nWhere: %s:%s%s",self:Colorize(file,'azure'),self:Colorize(line,'red'),self:Colorize(func,'orange')) ..
-			format("\nWhat: "..fmt,tostringall(...)),
-			r,g,b)
+function lib:_Trace(ft,skip,...)
+	local stack={strsplit("\n",debugstack(3,5,0))}
+	local info=stack[1 + skip or 0]
+	local file,line,func=tostringall(strsplit(":",info))
+	_G.DEFAULT_CHAT_FRAME:AddMessage(
+		format("Trace\nWhere: %s:%s%s",self:Colorize(file,'azure'),C(line,'red'),C(func,'orange')) ..
+		"\nWhat:"..C(strjoin(" ",tostringall(...)),"Green"),
+		C.Yellow())
 	if (ft) then
 		print "Full stack dump"
 		for i,info in ipairs(stack) do
-			print (format("Stack: %d. %s",i,self:Colorize(info,'green')))
+			print (format("Stack: %d. %s",i,C(info,'green')))
 		end
 		print("--------------")
 	end
@@ -1546,137 +1538,165 @@ local l=LibStub("AceLocale-3.0")
 local me=MAJOR_VERSION .. MINOR_VERSION
 --@do-not-package@
 -- Actual translations for test purpose
-local Locale=l:NewLocale(me,"enUS",true,true)
-Locale["Configuration"] = true
-Locale["Description"] = true
-Locale["Libraries"] = true
-Locale["Release Notes"] = true
-Locale["Toggles"] = true
-Locale=l:NewLocale(me,"ptBR")
-if (Locale) then
-Locale["Configuration"] = "configura\195\167\195\163o"
-Locale["Description"] = "Descri\195\167\195\163o"
-Locale["Libraries"] = "bibliotecas"
-Locale["Release Notes"] = "Notas de Lan\195\167amento"
-Locale["Toggles"] = "Alterna"
-end
-Locale=l:NewLocale(me,"frFR")
-if (Locale) then
-Locale["Configuration"] = "configuration"
-Locale["Description"] = "description"
-Locale["Libraries"] = "biblioth\195\168ques"
-Locale["Release Notes"] = "notes de version"
-Locale["Toggles"] = "Bascule"
-end
-Locale=l:NewLocale(me,"deDE")
-if (Locale) then
-Locale["Configuration"] = "Konfiguration"
-Locale["Description"] = "Beschreibung"
-Locale["Libraries"] = "Bibliotheken"
-Locale["Release Notes"] = "Release Notes"
-Locale["Toggles"] = "Schaltet"
-end
-Locale=l:NewLocale(me,"koKR")
-if (Locale) then
-Locale["Configuration"] = "\234\181\172\236\132\177"
-Locale["Description"] = "\236\132\164\235\170\133"
-Locale["Libraries"] = "\235\157\188\236\157\180\235\184\140\235\159\172\235\166\172"
-Locale["Release Notes"] = "\235\166\180\235\166\172\236\138\164 \235\133\184\237\138\184"
-Locale["Toggles"] = "\236\160\132\237\153\152"
-end
-Locale=l:NewLocale(me,"esMX")
-if (Locale) then
-Locale["Configuration"] = "Configuraci\195\179n"
-Locale["Description"] = "Descripci\195\179n"
-Locale["Libraries"] = "Bibliotecas"
-Locale["Release Notes"] = "Notas de la versi\195\179n"
-Locale["Toggles"] = "Alterna"
-end
-Locale=l:NewLocale(me,"ruRU")
-if (Locale) then
-Locale["Configuration"] = "\208\154\208\190\208\189\209\132\208\184\208\179\209\131\209\128\208\176\209\134\208\184\209\143"
-Locale["Description"] = "\208\158\208\191\208\184\209\129\208\176\208\189\208\184\208\181"
-Locale["Libraries"] = "\208\145\208\184\208\177\208\187\208\184\208\190\209\130\208\181\208\186\208\184"
-Locale["Release Notes"] = "\208\159\209\128\208\184\208\188\208\181\209\135\208\176\208\189\208\184\209\143 \208\186 \208\178\209\139\208\191\209\131\209\129\208\186\209\131"
-Locale["Toggles"] = "\208\159\208\181\209\128\208\181\208\186\208\187\209\142\209\135\208\181\208\189\208\184\208\181"
-end
-Locale=l:NewLocale(me,"zhCN")
-if (Locale) then
-Locale["Configuration"] = "\233\133\141\231\189\174"
-Locale["Description"] = "\232\175\180\230\152\142"
-Locale["Libraries"] = "\229\155\190\228\185\166\233\166\134"
-Locale["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
-Locale["Toggles"] = "\229\136\135\230\141\162"
-end
-Locale=l:NewLocale(me,"esES")
-if (Locale) then
-Locale["Configuration"] = "Configuraci\195\179n"
-Locale["Description"] = "Descripci\195\179n"
-Locale["Libraries"] = "Bibliotecas"
-Locale["Release Notes"] = "Notas de la versi\195\179n"
-Locale["Toggles"] = "Alterna"
-end
-Locale=l:NewLocale(me,"zhTW")
-if (Locale) then
-Locale["Configuration"] = "\233\133\141\231\189\174"
-Locale["Description"] = "\232\175\180\230\152\142"
-Locale["Libraries"] = "\229\155\190\228\185\166\233\166\134"
-Locale["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
-Locale["Toggles"] = "\229\136\135\230\141\162"
-end
-Locale=l:NewLocale(me,"itIT")
-if (Locale) then
-Locale["Configuration"] = "Configurazione"
-Locale["Description"] = "Descrizione"
-Locale["Libraries"] = "Librerie"
-Locale["Release Notes"] = "Note di rilascio"
-Locale["Toggles"] = "Interruttori"
+do
+	local L=l:NewLocale(me,"enUS",true,true)
+	L["Configuration"] = true
+	L["Description"] = true
+	L["Libraries"] = true
+	L["Release Notes"] = true
+	L["Toggles"] = true
+	L=l:NewLocale(me,"ptBR")
+	if (L) then
+	L["Configuration"] = "configura\195\167\195\163o"
+	L["Description"] = "Descri\195\167\195\163o"
+	L["Libraries"] = "bibliotecas"
+	L["Release Notes"] = "Notas de Lan\195\167amento"
+	L["Toggles"] = "Alterna"
+	end
+	L=l:NewLocale(me,"frFR")
+	if (L) then
+	L["Configuration"] = "configuration"
+	L["Description"] = "description"
+	L["Libraries"] = "biblioth\195\168ques"
+	L["Release Notes"] = "notes de version"
+	L["Toggles"] = "Bascule"
+	end
+	L=l:NewLocale(me,"deDE")
+	if (L) then
+	L["Configuration"] = "Konfiguration"
+	L["Description"] = "Beschreibung"
+	L["Libraries"] = "Bibliotheken"
+	L["Release Notes"] = "Release Notes"
+	L["Toggles"] = "Schaltet"
+	end
+	L=l:NewLocale(me,"koKR")
+	if (L) then
+	L["Configuration"] = "\234\181\172\236\132\177"
+	L["Description"] = "\236\132\164\235\170\133"
+	L["Libraries"] = "\235\157\188\236\157\180\235\184\140\235\159\172\235\166\172"
+	L["Release Notes"] = "\235\166\180\235\166\172\236\138\164 \235\133\184\237\138\184"
+	L["Toggles"] = "\236\160\132\237\153\152"
+	end
+	L=l:NewLocale(me,"esMX")
+	if (L) then
+	L["Configuration"] = "Configuraci\195\179n"
+	L["Description"] = "Descripci\195\179n"
+	L["Libraries"] = "Bibliotecas"
+	L["Release Notes"] = "Notas de la versi\195\179n"
+	L["Toggles"] = "Alterna"
+	end
+	L=l:NewLocale(me,"ruRU")
+	if (L) then
+	L["Configuration"] = "\208\154\208\190\208\189\209\132\208\184\208\179\209\131\209\128\208\176\209\134\208\184\209\143"
+	L["Description"] = "\208\158\208\191\208\184\209\129\208\176\208\189\208\184\208\181"
+	L["Libraries"] = "\208\145\208\184\208\177\208\187\208\184\208\190\209\130\208\181\208\186\208\184"
+	L["Release Notes"] = "\208\159\209\128\208\184\208\188\208\181\209\135\208\176\208\189\208\184\209\143 \208\186 \208\178\209\139\208\191\209\131\209\129\208\186\209\131"
+	L["Toggles"] = "\208\159\208\181\209\128\208\181\208\186\208\187\209\142\209\135\208\181\208\189\208\184\208\181"
+	end
+	L=l:NewLocale(me,"zhCN")
+	if (L) then
+	L["Configuration"] = "\233\133\141\231\189\174"
+	L["Description"] = "\232\175\180\230\152\142"
+	L["Libraries"] = "\229\155\190\228\185\166\233\166\134"
+	L["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
+	L["Toggles"] = "\229\136\135\230\141\162"
+	end
+	L=l:NewLocale(me,"esES")
+	if (L) then
+	L["Configuration"] = "Configuraci\195\179n"
+	L["Description"] = "Descripci\195\179n"
+	L["Libraries"] = "Bibliotecas"
+	L["Release Notes"] = "Notas de la versi\195\179n"
+	L["Toggles"] = "Alterna"
+	end
+	L=l:NewLocale(me,"zhTW")
+	if (L) then
+	L["Configuration"] = "\233\133\141\231\189\174"
+	L["Description"] = "\232\175\180\230\152\142"
+	L["Libraries"] = "\229\155\190\228\185\166\233\166\134"
+	L["Release Notes"] = "\229\143\145\232\161\140\232\175\180\230\152\142"
+	L["Toggles"] = "\229\136\135\230\141\162"
+	end
+	L=l:NewLocale(me,"itIT")
+	if (L) then
+	L["Configuration"] = "Configurazione"
+	L["Description"] = "Descrizione"
+	L["Libraries"] = "Librerie"
+	L["Release Notes"] = "Note di rilascio"
+	L["Toggles"] = "Interruttori"
+	end
 end
 L=LibStub("AceLocale-3.0"):GetLocale(me,true)
-print("Loaded L")
-if true then return end
+print("Loaded Internal L")
+local core=LibStub("AceAddon-3.0"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
+function core:OnInitialize()
+	self:RegisterChatCommand("mark","Mark")
+end
+local lastframe
+function core:Mark(obj,args)
+--@debug@
+	LoadAddOn("Blizzard_DebugTools")
+--@end-debug@
+	self:Print(args)
+	DevTools_Dump(obj)
+	local point,frame=self:GetArgs(args,2)
+	if (not frame) then frame=lastframe end
+	if (not frame) then Print("Error: no frame") return end
+	self:Print("Anchoring to ",frame:GetName(),point)
+	local AXI
+	if (not AXI) then AXI=CreateFrame("Frame","AXI",UIParent,"GarrisonAbilityCounterTemplate") end
+	if (not point) then AXI:Hide() return end
+	AXI:ClearAllPoints()
+	AXI:SetPoint(point,frame)
+	AXI.Border:SetVertexColor(1,0,0)
+	AXI:SetFrameLevel(999)
+	AXI:Show()
+end
+print(core)if true then return end
 --@end-do-not-package@
-local Locale=l:NewLocale(me,"enUS",true,true)
---@localization(locale="enUS", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-Locale=l:NewLocale(me,"ptBR")
-if (Locale) then
---@localization(locale="ptBR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"frFR")
-if (Locale) then
---@localization(locale="frFR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"deDE")
-if (Locale) then
---@localization(locale="deDE", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"itIT")
-if (Locale) then
---@localization(locale="itIT", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"koKR")
-if (Locale) then
---@localization(locale="koKR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"esMX")
-if (Locale) then
---@localization(locale="esMX", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"ruRU")
-if (Locale) then
---@localization(locale="ruRU", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"zhCN")
-if (Locale) then
---@localization(locale="zhCN", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"esES")
-if (Locale) then
---@localization(locale="esES", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-end
-Locale=l:NewLocale(me,"zhTW")
-if (Locale) then
---@localization(locale="zhTW", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+do
+	local L=l:NewLocale(me,"enUS",true,true)
+	--@localization(locale="enUS", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	L=l:NewLocale(me,"ptBR")
+	if (L) then
+	--@localization(locale="ptBR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"frFR")
+	if (L) then
+	--@localization(locale="frFR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"deDE")
+	if (L) then
+	--@localization(locale="deDE", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"itIT")
+	if (L) then
+	--@localization(locale="itIT", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"koKR")
+	if (L) then
+	--@localization(locale="koKR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"esMX")
+	if (L) then
+	--@localization(locale="esMX", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"ruRU")
+	if (L) then
+	--@localization(locale="ruRU", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"zhCN")
+	if (L) then
+	--@localization(locale="zhCN", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"esES")
+	if (L) then
+	--@localization(locale="esES", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
+	L=l:NewLocale(me,"zhTW")
+	if (L) then
+	--@localization(locale="zhTW", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
+	end
 end
 L=LibStub("AceLocale-3.0"):GetLocale(me,true)
-print("Loaded L")
+

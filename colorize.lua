@@ -194,3 +194,12 @@ setmetatable(lib,{
 	__call=function(table,...) return C end
 	}
 )
+function lib:example()
+	for k,v in pairs(lib.colors) do
+		print(C(k,k))
+	end
+	print("----------------")
+	for k,v in pairs(ITEM_QUALITY_COLORS) do
+		print(format("%s Quality: %2d|r",v.hex,k))
+	end
+end
