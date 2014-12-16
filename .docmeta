@@ -1,4 +1,4 @@
 -
-	type: luadoc
+	type: textile
 	input-file: LibInit/LibInit.lua
 	output-page: API
