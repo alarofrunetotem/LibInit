@@ -1,4 +1,3 @@
-error("Questo file non deve mai essere caricato")
 --- **LibInit** should make using Ace3 even more easier and pleasant
 -- LibInit pulls Ace 3 for you if you use the curse packager and set it this way:
 --
