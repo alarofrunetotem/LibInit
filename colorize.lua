@@ -146,6 +146,7 @@ do
 			if (type(stringa)=="table") then
 					stringa=dummy
 			end
+			if (type(colore)~="string") then colore="Yellow" end
 			if (colore:match("^%x+$")) then
 					return "|cff" .. colore .. tostring(stringa) .. "|r"
 			else
