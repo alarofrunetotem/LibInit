@@ -2,9 +2,9 @@ package-as: LibInit
 enable-nolib-creation: no
 
 externals:
-	libs/Ace3:
-		url: svn://svn.wowace.com/wow/ace3/mainline/trunk
-		tag: latest
+  libs/Ace3:
+    url: svn://svn.wowace.com/wow/ace3/mainline/trunk
+    tag: latest
 
 ignore:
 - luac.out

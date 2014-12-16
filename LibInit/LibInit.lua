@@ -1281,10 +1281,10 @@ function lib:_Trace(ft,skip,...)
 	local stack={strsplit("\n",debugstack(3,5,0))}
 	local info=stack[1 + skip or 0]
 	local file,line,func=tostringall(strsplit(":",info))
-	_G.DEFAULT_CHAT_FRAME:AddMessage(
-		format("Trace\nWhere: %s:%s%s",self:Colorize(file,'azure'),C(line,'red'),C(func,'orange')) ..
-		"\nWhat:"..C(strjoin(" ",tostringall(...)),"Green"),
-		C.Yellow())
+	self:print(C("Error:","Red"),
+	strjoin(tostringall(...)),
+	format(" in %s:%s%s",C(file,'azure'),C(line,'red'),C(func,'orange'))
+	)
 	if (ft) then
 		print "Full stack dump"
 		for i,info in ipairs(stack) do
