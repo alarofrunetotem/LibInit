@@ -1,3 +1,4 @@
-type: luadoc
-input-files: "LibInit/LibInit.lua"
-output-directory: API
+-
+	type: luadoc
+	input-file: LibInit/LibInit.lua
+	output-page: API
