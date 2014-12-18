@@ -18,6 +18,7 @@
 	<Include file="libs\Ace3\AceConfig-3.0\AceConfig-3.0.xml"/>
 	<Include file="libs\Ace3\AceDB-3.0\AceDB-3.0.xml"/>
 	<Include file="libs\Ace3\AceDBOptions-3.0\AceDBOptions-3.0.xml"/>
-	<Script  file="libs\LibInit/Colorize.lua"/>
-	<Script  file="LibInit/LibInit.lua"/>
+	<Script  file="LibInit/colorize.lua"/>
+	<Script  file="Libinit\LibItemUpgradeInfo-1.0.lua"/>
+	<Script  file="LibInit\LibInit.lua"/>
 </Ui>

@@ -16,6 +16,8 @@
 -- local myAddon=LibStub("LibInit):NewAddon(me,true,"Someotherembeddablelibrary",...) to pull all Ace3 embeddable and adding more libraries
 -- @class file
 -- @name LibInit
+--
+local pp=print -- Keeping a handy plain print around
 local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 2
 --GAME_LOCALE="itIT"
@@ -27,6 +29,7 @@ local lib=module --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
 -- Upvalues
+local nop=function()end
 local _G=_G
 local floor=floor
 local abs=abs
@@ -58,13 +61,14 @@ local tostringall=tostringall
 local tonumber=tonumber
 local strconcat=strconcat
 local strjoin=strjoin
+local select=select
 local cachedGetItemInfo
 --]]
 -- Help sections
 local titles
-local RELNOTES='RELNOTES'
-local PROFILE='PROFILE'
-local HELPSECTIONS={RELNOTES,PROFILE}
+local RELNOTES
+local PROFILE
+local HELPSECTIONS
 local AceConfig = LibStub("AceConfig-3.0",true)
 local AceRegistry = LibStub("AceConfigRegistry-3.0",true)
 local AceDBOptions=LibStub("AceDBOptions-3.0",true)
@@ -115,6 +119,8 @@ lib.mixinTargets=lib.mixinTargets or {}
 lib.combatSchedules = lib.combatSchedules or {}
 lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
 lib.debugs=lib.debugs or {}
+lib.toggles=lib.toggles or {}
+lib.addon=lib.addon or {}
 
 function lib:NewAddon(name,full,...)
 	if (not Ace) then
@@ -154,7 +160,28 @@ function lib:NewAddon(name,full,...)
 	-- Setting sensible default for mandatory fields
 	target.ID=GetAddOnMetadata(name,"X-ID") or (target.name:gsub("[^%u%d]","") .. "XXXX"):sub(1,3)
 	target.DATABASE=GetAddOnMetadata(name,"X-Database") or "db" .. target.ID
+	lib.addon[target]=name
+	lib.toggles[target]={}
+	RELNOTES=L["Release Notes"]
+	PROFILE=L["Profile"]
+	HELPSECTIONS={PROFILE,RELNOTES}
+	titles={
+		RELNOTES=RELNOTES,
+		PROFILE=PROFILE
+	}
 	return target
+end
+--- Returns a closure to call a method as simple local function
+--@usage local print=lib:Wrap("print")
+function lib:Wrap(nome)
+	if (nome=="Trace") then
+		return function(...) lib._Trace(self,1,...) end
+	end
+	if (type(self[nome])=="function") then
+		return function(...) self[nome](self,...) end
+	else
+		return nop
+	end
 end
 function lib:GetAddon(name)
 	return Ace:GetAddon(name,true)
@@ -162,58 +189,6 @@ end
 function lib:GetLocale()
 	return AceLocale:GetLocale(self.name)
 end
-local function GetChatFrame(chat)
-	if (chat) then
-		for i=1,NUM_CHAT_WINDOWS do
-			local frame=_G["ChatFrame" .. i]
-			if (not frame) then break end
-			if (frame.name==chat) then return frame end
-		end
-		return nil
-	end
-	return DEFAULT_CHAT_FRAME
-end
-function lib:GetPrintFunctions(caller,skip)
-	local result
-	if (type(skip)=='table') then result=skip else wipe(tab) result=tab end
-	do
-		local GetChatFrame=GetChatFrame
-		local caller=tostring(caller) or ''
-		local skip=tonumber(skip) or 1
-		local prefixp=caller .. ':|r|cff20ff20'
-		local prefixd='|cffff1010DBG:' .. caller .. ':|r|cff00ff00'
-		local prefixs='|cffff1010DBS:' .. caller .. ':|r|cff00ff00'
-		local prefixn=caller .. ':|r|cffff9900'
-		local prefixe=caller .. '-Error:|r|cffff0000'
-		local xformat=xformat
-		local debugs=self.debugs
-		debugs[caller]=true
-		function result.print(...) pp(prefixp,xformat(select(skip,...))) end
-		function result.dump(value,desc)
-				desc=desc or "Debug dump"
-				pp(prefixp ,desc)
-				dumpdata(value)
-				if (_G.DOVEDIAVOLOSTA) then
-					pp(tostring(debugstack(2,1,0)))
-				end
-		end
-		function result.debug(...)
-			if (debugs[caller]) then
-				local c = GetChatFrame("ADebug")
-				if (c) then c:AddMessage(strjoin(' ',date("%X"),prefixd,xformat(select(skip,...))),tostring(debugstack(2,1,0))) end
-			end
-		end
-		function result.sdebug(...)
-				local c = GetChatFrame("ADebug")
-				if (c) then c:AddMessage(strjoin(' ',date("%X"),prefixs,xformat(select(skip,...))),tostring(debugstack(2,1,0))) end
-		end
-		function result.notify(...) pp(prefixn,xformat(select(skip,...))) end
-		function result.error(...) pp(prefixe,xformat(select(skip,...))) end
-		function result.debugEnable(...) if (select(skip,...)) then debugs[caller] = true else debugs[caller] =false end end
-	end
-	return result
-end
-
 local combatSchedules = lib.combatSchedules
 -- Gestione variabili
 local varmeta={}
@@ -426,11 +401,23 @@ local function LoadDefaults(self)
 				func="Gui",
 				guiHidden=true,
 			},
+--@debug@
 			help = {
 				name="HELP",
 				desc="Show help",
 				type="execute",
 				func="Help",
+				guiHidden=true,
+			},
+--@debug@
+			silent = {
+				name="SILENT",
+				desc="Eliminates startup messages",
+				type="execute",
+				func=function()
+					self.db.global.silent=not self.db.global.silent
+					print("Silent is now",self.db.global.silent and "true" or "false" )
+				end,
 				guiHidden=true,
 			},
 			on = {
@@ -494,16 +481,12 @@ function lib:RegisterDatabase(dbname,defaults,profile)
 	return AceDB:New(dbname,defaults,profile)
 end
 function lib:OnInitialize(...)
-	titles={
-		RELNOTES=L["Release Notes"],
-		PROFILE=L["Profile"]
-	}
+
 --@debug@
 	LoadAddOn("Blizzard_DebugTools")
 --@end-debug@
 	self.numericversion=self:NumericVersion() -- Initialized now becaus NumericVersion could be overrided
 	--CachedGetItemInfo=self:GetCachingGetItemInfo()
-	self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
 	LoadDefaults(self)
 	local defaultProfile=self:SetDbDefaults(self.DbDefaults)
 	self:SetOptionsTable(self.OptionsTable)
@@ -511,6 +494,10 @@ function lib:OnInitialize(...)
 		self.db=AceDB:New(self.DATABASE,nil,defaultProfile)
 	end
 	self.db:RegisterDefaults(self.DbDefaults)
+	if (not self.db.global.silent) then
+		self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
+		self:Print("You can disable this message with /" .. strlower(self.ID) .. " silent")
+	end
 	self:SetEnabledState(self:GetBoolean("Active"))
 	-- I have for sure some library that needs to be intialized Before the addon
 	for _,library in self:IterateEmbeds(self) do
@@ -820,6 +807,7 @@ function lib:AddBoolean(flag,defaultvalue,name,description,icon)
 			order=getorder(self,group),
 
 	}
+	lib.toggles[self][flag]=t
 	group.args[flag]=t
 	if (self.db.profile.toggles[flag]== nil) then
 			self.db.profile.toggles[flag]=defaultvalue
@@ -830,6 +818,30 @@ function lib:AddToggle(flag,defaultvalue,name,description)
 	description=description or name
 	return self:AddBoolean(flag,defaultvalue,name,description)
 end
+-- self:AddEdit("REFLECTTO",1,{a=1,b=2},"Whisper reflection receiver:","All your whispers will be forwarded to this guy")
+function lib:AddSelect(flag,defaultvalue,values,name,description)
+	description=description or name
+	local group=getgroup(self)
+	local t={
+			name=name,
+			type="select",
+			get="OptToggleGet",
+			set="OptToggleSet",
+			desc=description,
+			width="full",
+			values=values,
+			arg=flag,
+			cmdHidden=true,
+			order=getorder(self,group)
+	}
+	group.args[flag]=t
+	if (self.db.profile.toggles[flag]== nil) then
+			self.db.profile.toggles[flag]=defaultvalue
+	end
+	lib.toggles[self][flag]=t
+	return t
+end
+
 --self:AddSlider("RESTIMER",5,1,10,"Enable res timer","Shows a timer for battlefield resser",1)
 function lib:AddSlider(flag,defaultvalue,min,max,name,description,step)
 	description=description or name
@@ -860,6 +872,7 @@ function lib:AddSlider(flag,defaultvalue,min,max,name,description,step)
 	if (self.db.profile.toggles[flag]== nil) then
 		self.db.profile.toggles[flag]=defaultvalue
 	end
+	lib.toggles[self][flag]=t
 	return t
 end
 -- self:AddEdit("REFLECTTO","","Whisper reflection receiver:","All your whispers will be forwarded to this guy","How to use it")
@@ -882,28 +895,7 @@ function lib:AddEdit(flag,defaultvalue,name,description,usage)
 	if (self.db.profile.toggles[flag]== nil) then
 			self.db.profile.toggles[flag]=defaultvalue
 	end
-	return t
-end
--- self:AddEdit("REFLECTTO",1,{a=1,b=2},"Whisper reflection receiver:","All your whispers will be forwarded to this guy")
-function lib:AddSelect(flag,defaultvalue,values,name,description)
-	description=description or name
-	local group=getgroup(self)
-	local t={
-			name=name,
-			type="select",
-			get="OptToggleGet",
-			set="OptToggleSet",
-			desc=description,
-			width="full",
-			values=values,
-			arg=flag,
-			cmdHidden=true,
-			order=getorder(self,group)
-	}
-	group.args[flag]=t
-	if (self.db.profile.toggles[flag]== nil) then
-			self.db.profile.toggles[flag]=defaultvalue
-	end
+	lib.toggles[self][flag]=t
 	return t
 end
 
@@ -928,8 +920,9 @@ function lib:AddAction(method,label,description,private)
 			order=getorder(self,group)
 		}
 	if (private) then t.hidden=true end
-		group.args[strlower(label)]=t
-		return t
+	group.args[strlower(label)]=t
+	lib.toggles[self][method]=t
+	return t
 end
 
 function lib:AddPrivateAction(method,name,description)
@@ -949,11 +942,13 @@ function lib:AddKeyBinding(flag,name,description)
 		order=getorder(self,group)
 	}
 	group.args[flag]=t
+	lib.toggles[self][flag]=t
 	return t
 end
 function lib:AddTable(flag,table)
 	local group=getgroup(self)
 	group.args[flag]=table
+	lib.toggles[self][flag]=table
 end
 function lib:_OpenCmd(info,args)
 	local method=info.arg
@@ -999,6 +994,9 @@ function lib:AddOpenCmd(command,method,description,arguments,private)
 end
 function lib:AddPrivateOpenCmd(command,method,description,arguments)
 	return self:AddOpenCmd(command,method,description,arguments,true)
+end
+function lib:GetVarInfo(flag)
+	return lib.toggles[self][flag]
 end
 
 --self:AddSubCmd(flagname,method,label,description)
@@ -1070,13 +1068,17 @@ end
 
 function lib:OnEnable(first,...)
 	if (self.OnEnabled) then
-		self:Print(C("enabled","green"))
+		if (not self.db.global.silent) then
+			self:Print(C("enabled","green"))
+		end
 		pcall(self.OnEnabled,self)
 	end
 end
 function lib:OnDisable(...)
 	if (self.OnDisabled) then
-		self.print(C("disabled",'red'))
+		if (not self.db.global.silent) then
+			self.print(C("disabled",'red'))
+		end
 		pcall(self.OnDisabled,self,...)
 	end
 end
@@ -1268,30 +1270,20 @@ function lib:CancelScheduledEvent(flag)
 	self:CancelTimer(h)
 end
 function lib:Trace(...)
---@debug@
-	self:_Trace(false,0,...)
---@end-debug@
+	lib._Trace(self,0,...)
 end
-function lib:FullTrace(...)
-	--@debug@
-	self:_Trace(true,0,...)
-	--@end-debug@
-end
-function lib:_Trace(ft,skip,...)
+function lib:_Trace(skip,...)
+	--pp(...)
 	local stack={strsplit("\n",debugstack(3,5,0))}
 	local info=stack[1 + skip or 0]
+	--pp(info)
+	--local file,line,func=info:match("(%s%.lua):(%d+) in function (.*)")
+	--pp(file,line,func)
 	local file,line,func=tostringall(strsplit(":",info))
-	self:print(C("Error:","Red"),
-	strjoin(tostringall(...)),
+	pp(C("Error:","Red"),
+	strjoin(" ",tostringall(...)),
 	format(" in %s:%s%s",C(file,'azure'),C(line,'red'),C(func,'orange'))
 	)
-	if (ft) then
-		print "Full stack dump"
-		for i,info in ipairs(stack) do
-			print (format("Stack: %d. %s",i,C(info,'green')))
-		end
-		print("--------------")
-	end
 end
 function lib:Long(msg) C:OnScreen('Yellow',msg,20) end
 function lib:Onscreen_Orange(msg) C:OnScreen('Orange',msg,2) end
@@ -1388,10 +1380,9 @@ end
 -- This function get called on addon creation
 -- Anything I define here is immediately available to addon code
 function lib:Embed(target)
-	self:GetPrintFunctions(self.title,target)
 	-- Standard libins
 	for name,method in pairs(lib) do
-			if (name~="NewAddon" and name~="GetAddon") then
+			if (name~="NewAddon" and name~="GetAddon" and name:sub(1,1)~="_") then
 				target[name] = method
 			end
 	end
