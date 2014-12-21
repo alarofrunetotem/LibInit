@@ -409,7 +409,7 @@ local function LoadDefaults(self)
 				func="Help",
 				guiHidden=true,
 			},
---@debug@
+--@end-debug@
 			silent = {
 				name="SILENT",
 				desc="Eliminates startup messages",
