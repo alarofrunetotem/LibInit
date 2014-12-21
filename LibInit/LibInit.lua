@@ -416,7 +416,7 @@ local function LoadDefaults(self)
 				type="execute",
 				func=function()
 					self.db.global.silent=not self.db.global.silent
-					print("Silent is now",self.db.global.silent and "true" or "false" )
+					print("Silent is now",self.db.global.silent,self.db.global.silent and "true" or "false" )
 				end,
 				guiHidden=true,
 			},
@@ -1197,8 +1197,10 @@ function lib:SetVar(flag,value)
 	return self:GetSet(flag,value)
 end
 function lib:Trigger(flag)
-	if (self:IsEnabled()) then
-		self._Apply[flag](self,flag,self:GetVar(flag))
+	local info=self:GetVarInfo(flag)
+	if (info) then
+		local value=info.type=="toggle" and self:GetBoolean(flag) or self:GetVar(flag)
+		self._Apply[flag](self,flag,value)
 	end
 
 end
@@ -1280,9 +1282,8 @@ function lib:_Trace(skip,...)
 	--local file,line,func=info:match("(%s%.lua):(%d+) in function (.*)")
 	--pp(file,line,func)
 	local file,line,func=tostringall(strsplit(":",info))
-	pp(C("Error:","Red"),
-	strjoin(" ",tostringall(...)),
-	format(" in %s:%s%s",C(file,'azure'),C(line,'red'),C(func,'orange'))
+	pp(strjoin(" ",tostringall(...)),
+		format(" in %s:%s%s",C(file,'azure'),C(line,'red'),C(func,'orange'))
 	)
 end
 function lib:Long(msg) C:OnScreen('Yellow',msg,20) end
@@ -1332,7 +1333,6 @@ lib.itemcache=lib.itemcache or
 				if (table.I) then
 					p99=table.I:GetItemLevelUpgrade(table.I:GetUpgradeID(p2))
 				else
-					debug("No libiteminfo")
 					p99=0
 				end
 				p100=p4+p99
