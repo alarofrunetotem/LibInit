@@ -19,7 +19,7 @@
 --
 local pp=print -- Keeping a handy plain print around
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 2
+local MINOR_VERSION = 3
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
@@ -1507,18 +1507,30 @@ function lib:ScheduleLeaveCombatAction(method, ...)
 	t.self = self
 	table.insert(combatSchedules, t)
 end
-function lib:Popup(msg,timeout)
+function lib:Popup(msg,timeout,OnAccept,OnCancel)
 	msg=msg or "Something strange happened"
 	StaticPopupDialogs["LIBINIT_POPUP"] = StaticPopupDialogs["LIBINIT_POPUP"] or
 	{
-	text = TEXT(msg),
-	button1 = TEXT("OK"),
+	text = msg,
+	button1 = ACCEPT,
 	showAlert = 1,
 	timeout = timeout or 60,
 	exclusive = 1,
 	whileDead = 1,
 	interruptCinematic = 1
 	};
+	local popup=StaticPopupDialogs["LIBINIT_POPUP"]
+	popup.OnCancel=nil
+	popup.OnAccept=OnAccept
+	popup.button2=nil
+	if (OnCancel) then
+		if (type(OnCancel)=="function") then
+			popup.OnCancel=OnCancel
+		end
+		popup.button2 = CANCEL
+	end
+
+
 	StaticPopup_Show("LIBINIT_POPUP");
 end
 --- reembed routine
