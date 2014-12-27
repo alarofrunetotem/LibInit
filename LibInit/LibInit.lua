@@ -861,6 +861,7 @@ function lib:AddSlider(flag,defaultvalue,min,max,name,description,step)
 		get="OptToggleGet",
 		set="OptToggleSet",
 		desc=description,
+		width="full",
 		arg=flag,
 		step=step,
 		isPercent=isPercent,
