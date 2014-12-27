@@ -1513,13 +1513,14 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel)
 	{
 	text = msg,
 	button1 = ACCEPT,
-	showAlert = 1,
+	showAlert = true,
 	timeout = timeout or 60,
-	exclusive = 1,
-	whileDead = 1,
-	interruptCinematic = 1
+	exclusive = true,
+	whileDead = true,
+	interruptCinematic = true
 	};
 	local popup=StaticPopupDialogs["LIBINIT_POPUP"]
+	popup.text=msg
 	popup.OnCancel=nil
 	popup.OnAccept=OnAccept
 	popup.button2=nil
