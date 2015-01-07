@@ -791,7 +791,7 @@ function lib:AddText(text,image,imageHeight,imageWidth,imageCoords)
 end
 
 --self:AddToggle("AUTOLEAVE",true,"Quick Battlefield Leave","Alt-Click on hide button in battlefield alert leaves the queue")
-function lib:AddBoolean(flag,defaultvalue,name,description,icon)
+function lib:AddToggle(flag,defaultvalue,name,description,icon)
 	description=description or name
 	local group=getgroup(self)
 	local t={
@@ -813,10 +813,6 @@ function lib:AddBoolean(flag,defaultvalue,name,description,icon)
 			self.db.profile.toggles[flag]=defaultvalue
 	end
 	return t
-end
-function lib:AddToggle(flag,defaultvalue,name,description)
-	description=description or name
-	return self:AddBoolean(flag,defaultvalue,name,description)
 end
 -- self:AddEdit("REFLECTTO",1,{a=1,b=2},"Whisper reflection receiver:","All your whispers will be forwarded to this guy")
 function lib:AddSelect(flag,defaultvalue,values,name,description)
@@ -900,17 +896,11 @@ function lib:AddEdit(flag,defaultvalue,name,description,usage)
 	return t
 end
 
--- self:AddAction(["btopenspells",]"openSpells","Opens spell panel","You can choose yoru spells in spell panel")
+-- self:AddAction("openSpells","Opens spell panel","You can choose yoru spells in spell panel")
 function lib:AddAction(method,label,description,private)
 	label=label or method
 	description=description or label
 		local group=getgroup(self)
-		if type(self[method]) ~="function" and type(self[label])=="function" then
-			local appo=method
-			method=label
-			label=appo
-			appo=nil
-		end
 		local t={
 			func=method,
 			name=label,
