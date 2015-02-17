@@ -19,7 +19,7 @@
 --
 local pp=print -- Keeping a handy plain print around
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 4
+local MINOR_VERSION = 5
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
@@ -28,6 +28,8 @@ if (not module) then return end -- Already exists this same version
 local lib=module --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
+local I=LibStub("LibItemUpgradeInfo-1.0")
+
 -- Upvalues
 local nop=function()end
 local _G=_G
@@ -61,6 +63,7 @@ local tostringall=tostringall
 local tonumber=tonumber
 local strconcat=strconcat
 local strjoin=strjoin
+local strsplit=strsplit
 local select=select
 local cachedGetItemInfo
 --]]
@@ -121,6 +124,7 @@ lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for schedule
 lib.debugs=lib.debugs or {}
 lib.toggles=lib.toggles or {}
 lib.addon=lib.addon or {}
+lib.chats=lib.chats or {}
 
 function lib:NewAddon(name,full,...)
 	if (not Ace) then
@@ -213,6 +217,18 @@ do
 			return rawget(table,cmd)
 		end
 	}
+end
+function lib:GetChatFrame(chat)
+	if (chat) then
+		if (lib.chats[chat]) then return lib.chats[chat] end
+		for i=1,NUM_CHAT_WINDOWS do
+			local frame=_G["ChatFrame" .. i]
+			if (not frame) then break end
+			if (frame.name==chat) then lib.chats[chat]=frame return frame end
+		end
+		return nil
+	end
+	return DEFAULT_CHAT_FRAME
 end
 
 local Myclass
@@ -1316,23 +1332,19 @@ lib.emptytable={false,false}
 lib.itemcache=lib.itemcache or
 	setmetatable({miss=0,tot=0},{
 		__index=function(table,key)
-			if (not key) then return lib.emptytable end
+			if (not key) then return "" end
 			if (key=="miss") then return 0 end
 			if (key=="tot") then return 0 end
-			local p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p99,p100=GetItemInfo(key)
-			if (p2) then
-				if (table.I) then
-					p99=table.I:GetItemLevelUpgrade(table.I:GetUpgradeID(p2))
-				else
-					p99=0
-				end
-				p100=p4+p99
-				rawset(table,p2,{p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p2,p3,[99]=p99,[100]=p100})
-			else
-				return lib.emptytable
-			end
+			local cached=strjoin(';',tostringall(GetItemInfo(key)))
+			local itemLink=select(2,strsplit(';',cached))
+			if not itemLink then return nil end
+			local itemID=lib:GetItemID(itemLink)
+			local name=select(1,strsplit(';',cached))
+			rawset(table,itemLink,cached)
+			rawset(table,itemID,cached)
+			rawset(table,name,cached)
 			table.miss=table.miss+1
-			return table[p2]
+			return cached
 		end
 
 	})
@@ -1340,23 +1352,13 @@ function lib:GetCachingGetItemInfo()
 	do
 		local cache=lib.itemcache
 		wipe(cache)
-		cache.I=LibStub("LibItemUpgradeInfo-1.0",true)
 		return
-		function(itemlink,index)
---			if (tonumber(itemlink)) then
---				if (tonumber(index)) then
---					if (index==99) then return 0 end
---					if (index==100) then index=4 end
---					return select(index,GetItemInfo(itemlink))
---				else
---					return GetItemInfo(itemlink)
---				end
---			end
+		function(itemID,index)
+			index=index or 1
 			cache.tot=cache.tot+1
-			if (index) then
-				return cache[itemlink][index]
-			else
-				return unpack(cache[itemlink])
+			local cached=cache[index]
+			if (cached) then
+				return select(1,strsplit(';',cached))
 			end
 		end
 	end
@@ -1524,6 +1526,53 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel)
 
 
 	StaticPopup_Show("LIBINIT_POPUP");
+end
+local factory={} --#factory
+do
+	local nonce=0
+	local GetTime=GetTime
+	function factory:Slider(father,min,max,current,message)
+		local name=tostring(self)..GetTime()*1000 ..nonce
+		nonce=nonce+1
+		local sl = CreateFrame('Slider',name, father, 'OptionsSliderTemplate')
+		sl:SetWidth(128)
+		sl:SetHeight(20)
+		sl:SetOrientation('HORIZONTAL')
+		sl:SetMinMaxValues(min, max)
+		sl:SetValue(current)
+		sl:SetValueStep(1)
+		sl.Low=_G[name ..'Low']
+		sl.Low:SetText(min)
+		sl.High=_G[name .. 'High']
+		sl.High:SetText(max)
+		sl.Text=_G[name.. 'Text']
+		sl.Text:SetText(message)
+		sl.OnValueChanged=function(this,value)
+			if (not this.unrounded) then
+				value = math.floor(value)
+			end
+			if (this.isPercent) then
+				this.Text:SetFormattedText('%d%%',value)
+			else
+				this.Text:SetText(value)
+			end
+			return value
+		end
+		sl:SetScript("OnValueChanged",sl.OnValueChanged)
+		return sl
+	end
+	function factory:Checkbox(father,current,message)
+		local name=tostring(self)..GetTime()*1000 ..nonce
+		nonce=nonce+1
+		local ck=CreateFrame("CheckButton",name,father,"ChatConfigCheckButtonTemplate")
+		ck.Text=_G[name..'Text']
+		ck.Text:SetText(message)
+		ck:SetChecked(current)
+		return ck
+	end
+end
+function lib:GetFactory()
+	return factory
 end
 --- reembed routine
 for target,_ in pairs(lib.mixinTargets) do
