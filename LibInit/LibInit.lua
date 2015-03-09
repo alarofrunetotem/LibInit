@@ -19,7 +19,7 @@
 --
 local pp=print -- Keeping a handy plain print around
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 5
+local MINOR_VERSION = 6
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
@@ -65,6 +65,7 @@ local strconcat=strconcat
 local strjoin=strjoin
 local strsplit=strsplit
 local select=select
+local coroutine=coroutine
 local cachedGetItemInfo
 --]]
 -- Help sections
@@ -1500,7 +1501,42 @@ function lib:ScheduleLeaveCombatAction(method, ...)
 	t.self = self
 	table.insert(combatSchedules, t)
 end
-function lib:Popup(msg,timeout,OnAccept,OnCancel)
+function lib:coroutineExecute(interval,func)
+	local co=coroutine.wrap(func)
+	local interval=interval
+	local repeater
+	repeater=function()
+		if (co()) then
+			C_Timer.After(interval,repeater)
+		else
+			repeater=nil
+		end
+	end
+	return repeater()
+end
+if not lib.secureframe then
+	lib.secureframe=CreateFrame("Button",nil,nil,"StaticPopupButtonTemplate,SecureActionButtonTemplate")
+	lib.secureframe:Hide()
+end
+local function StopSpellCasting(this)
+	local b2=_G[this:GetName().."Button2"]
+	local AC=lib.secureframe
+	AC:SetParent(b2)
+	AC:SetAllPoints()
+	AC:SetText(b2:GetText())
+	AC:SetAttribute("type","stop")
+	AC:SetScript("PostClick",function() b2:Click() end)
+	AC:Show()
+end
+local function StopSpellCastingCleanup(this)
+	local AC=lib.secureframe
+	AC:SetParent(nil)
+	AC:Hide()
+
+end
+local StaticPopupDialogs=StaticPopupDialogs
+local StaticPopup_Show=StaticPopup_Show
+function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	msg=msg or "Something strange happened"
 	StaticPopupDialogs["LIBINIT_POPUP"] = StaticPopupDialogs["LIBINIT_POPUP"] or
 	{
@@ -1513,6 +1549,13 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel)
 	interruptCinematic = true
 	};
 	local popup=StaticPopupDialogs["LIBINIT_POPUP"]
+	if StopCasting then
+		popup.OnShow=StopSpellCasting
+		popup.OnHide=StopSpellCastingCleanup
+	else
+		popup.OnShow=nil
+		popup.OnHide=nil
+	end
 	popup.text=msg
 	popup.OnCancel=nil
 	popup.OnAccept=OnAccept
@@ -1523,15 +1566,17 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel)
 		end
 		popup.button2 = CANCEL
 	end
-
-
-	StaticPopup_Show("LIBINIT_POPUP");
+	StaticPopup_Show("LIBINIT_POPUP",nil,nil,data);
 end
 local factory={} --#factory
 do
 	local nonce=0
 	local GetTime=GetTime
-	function factory:Slider(father,min,max,current,message)
+	function factory:Slider(father,min,max,current,message,tooltip)
+		if type(message)=="table" then
+			tooltip=message.desc
+			message=message.name
+		end
 		local name=tostring(self)..GetTime()*1000 ..nonce
 		nonce=nonce+1
 		local sl = CreateFrame('Slider',name, father, 'OptionsSliderTemplate')
@@ -1559,15 +1604,21 @@ do
 			return value
 		end
 		sl:SetScript("OnValueChanged",sl.OnValueChanged)
+		sl.tooltip=tooltip
 		return sl
 	end
-	function factory:Checkbox(father,current,message)
+	function factory:Checkbox(father,current,message,tooltip)
+		if type(message)=="table" then
+			tooltip=message.desc
+			message=message.name
+		end
 		local name=tostring(self)..GetTime()*1000 ..nonce
 		nonce=nonce+1
 		local ck=CreateFrame("CheckButton",name,father,"ChatConfigCheckButtonTemplate")
 		ck.Text=_G[name..'Text']
 		ck.Text:SetText(message)
 		ck:SetChecked(current)
+		ck.tooltip=tooltip
 		return ck
 	end
 end
