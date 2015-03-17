@@ -19,7 +19,7 @@
 --
 local pp=print -- Keeping a handy plain print around
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 6
+local MINOR_VERSION = 7
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
