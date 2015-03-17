@@ -427,6 +427,16 @@ local function LoadDefaults(self)
 				guiHidden=true,
 			},
 --@end-debug@
+--@alpha@
+			debug = {
+				name="DBG",
+				desc="Enable debug",
+				type="execute",
+				func="Debug",
+				guiHidden=true,
+				cmdHidden=true,
+			},
+--@end-alpha@
 			silent = {
 				name="SILENT",
 				desc="Eliminates startup messages",
@@ -1124,10 +1134,12 @@ end
 function lib:Notify(...)
 	return self:CustomPrint(C.orange.r,C.orange.g,C.orange.b, nil, nil, ' ', ...)
 end
-function lib:Debug(...)
-	if (self.DebugOn or _G.ALARDEVELOPMENTPC) then
-		self:Print(...)
-	end
+function lib:Debug()
+	self.DebugOn=not self.DebugOn
+	pp(self.name,"debug:",self.DebugOn and "On" or "Off")
+end
+function lib:Dprint(...)
+	pp(self.ID,'DBG',...)
 end
 --[[
 function lib:Print(...)
@@ -1255,6 +1267,7 @@ function lib:Gui(info)
 		self:Print("No GUI available")
 	end
 end
+
 function lib:Help(info)
 	if (AceConfigDialog and AceGUI) then
 		if (neveropened) then
