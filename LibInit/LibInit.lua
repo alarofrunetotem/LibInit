@@ -427,7 +427,6 @@ local function LoadDefaults(self)
 				guiHidden=true,
 			},
 --@end-debug@
---@alpha@
 			debug = {
 				name="DBG",
 				desc="Enable debug",
@@ -436,7 +435,6 @@ local function LoadDefaults(self)
 				guiHidden=true,
 				cmdHidden=true,
 			},
---@end-alpha@
 			silent = {
 				name="SILENT",
 				desc="Eliminates startup messages",
