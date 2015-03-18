@@ -17,9 +17,11 @@
 -- @class file
 -- @name LibInit
 --
-local pp=print -- Keeping a handy plain print around
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 7
+local MINOR_VERSION = 8
+local nop=function()end
+local dprint=function (self,...)	print(self.ID,'DBG',...) end
+local pp=print -- Keeping a handy plain print around
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
@@ -31,7 +33,6 @@ local C=LibStub("LibInit-Colorize")()
 local I=LibStub("LibItemUpgradeInfo-1.0")
 
 -- Upvalues
-local nop=function()end
 local _G=_G
 local floor=floor
 local abs=abs
@@ -126,7 +127,6 @@ lib.debugs=lib.debugs or {}
 lib.toggles=lib.toggles or {}
 lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
-
 function lib:NewAddon(name,full,...)
 	if (not Ace) then
 		error("Could not find Ace3 Library")
@@ -1131,16 +1131,21 @@ function lib:StopAutomaticEvents(ignore)
 		end
 	end
 end
+function lib:Dprint(...)
+end
 function lib:Notify(...)
 	return self:CustomPrint(C.orange.r,C.orange.g,C.orange.b, nil, nil, ' ', ...)
 end
 function lib:Debug()
 	self.DebugOn=not self.DebugOn
 	pp(self.name,"debug:",self.DebugOn and "On" or "Off")
+	if self.DebugOn then
+		lib.Dprint=dprint
+	else
+		lib.Dprint=nop
+	end
 end
-function lib:Dprint(...)
-	pp(self.ID,'DBG',...)
-end
+
 --[[
 function lib:Print(...)
 	return self:CustomPrint(nil, nil, nil, nil, nil, ' ', ...)
