@@ -18,7 +18,7 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 8
+local MINOR_VERSION = 9
 local nop=function()end
 local dprint=function (self,...)	print(self.ID,'DBG',...) end
 local pp=print -- Keeping a handy plain print around
