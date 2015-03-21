@@ -18,7 +18,7 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 9
+local MINOR_VERSION = 10
 local nop=function()end
 local dprint=function (self,...)	print(self.ID,'DBG',...) end
 local pp=print -- Keeping a handy plain print around
@@ -175,6 +175,19 @@ function lib:NewAddon(name,full,...)
 		PROFILE=PROFILE
 	}
 	return target
+end
+function lib:NewSubModule(name,...)
+	print("Allocating submodule",name)
+	local module=self:NewModule(name,...)
+	module.OnInitialized=function()print("placeholder invoked") end -- placeholder
+	module.OnInitialize=function(self,...) print("OnInitialize",self:GetName()) return  self:OnInitialized(...) end
+	module.OnEnable=nil
+	module.OnDisable=nill
+	return module
+end
+function lib:NewSubClass(name)
+	return self:NewSubModule(name,self)
+	-- To avoid strange interactions
 end
 --- Returns a closure to call a method as simple local function
 --@usage local print=lib:Wrap("print")
@@ -1138,9 +1151,9 @@ function lib:Debug()
 	self.DebugOn=not self.DebugOn
 	pp(self.name,"debug:",self.DebugOn and "On" or "Off")
 	if self.DebugOn then
-		lib.Dprint=dprint
+		self.Dprint=dprint
 	else
-		lib.Dprint=nop
+		self.Dprint=nop
 	end
 end
 
