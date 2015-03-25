@@ -18,7 +18,7 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 10
+local MINOR_VERSION = 11
 local nop=function()end
 local dprint=function (self,...)	print(self.ID,'DBG',...) end
 local pp=print -- Keeping a handy plain print around
@@ -155,6 +155,10 @@ function lib:NewAddon(name,full,...)
 	if (target.version:sub(1,1)=='@') then
 		target.version=GetAddOnMetadata(name,'X-Version') or 0
 	end
+	local b,e=target.version:find(" ")
+	if b and b>1 then
+			target.version=target.version:sub(1,b-1)
+	end
 	target.revision=GetAddOnMetadata(name,'X-revision')
 	if (target.revision:sub(1,1)=='@') then
 		target.revision='Development'
@@ -175,6 +179,27 @@ function lib:NewAddon(name,full,...)
 		PROFILE=PROFILE
 	}
 	return target
+end
+-- Combat scheduler done with LibCallbackHandler
+local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
+if not lib.CombatScheduler then
+	lib.CombatScheduler = CallbackHandler:New(lib,"_OnLeaveCombat","_CancelCombatAction")
+	lib.CombatFrame=CreateFrame("Frame")
+	lib.CombatFrame:SetScript("OnEvent",function()
+		lib.CombatScheduler:Fire("LIBINIT_END_COMBAT")
+		if lib.CombatScheduler.insertQueue then
+			wipe(lib.CombatScheduler.insertQueue) -- hackish, depends on internal callbackhanlder implementation
+		end
+		wipe(lib.CombatScheduler.events)
+		lib.CombatScheduler.recurse=0
+	end)
+	lib.CombatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+end
+function lib:OnLeaveCombat(...)
+	lib._OnLeaveCombat(self,"LIBINIT_END_COMBAT",...)
+	if (not InCombatLockdown()) then
+		lib.CombatFrame:GetScript("OnEvent")()
+	end
 end
 function lib:NewSubModule(name,...)
 	print("Allocating submodule",name)
