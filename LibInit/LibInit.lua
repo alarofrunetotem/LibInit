@@ -135,7 +135,7 @@ function lib:NewAddon(name,full,...)
 	local mixins=new()
 	if (type(full)=='boolean') then
 		for i,k in  LibStub:IterateLibraries() do
-			if (i:match("Ace%w*-3%.0") and k.Embed) then print("Found",i) tinsert(mixins,i) end
+			if (i:match("Ace%w*-3%.0") and k.Embed) then tinsert(mixins,i) end
 		end
 	else
 		tinsert(mixins,full)
