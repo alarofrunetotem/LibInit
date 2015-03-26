@@ -1592,6 +1592,12 @@ local StaticPopupDialogs=StaticPopupDialogs
 local StaticPopup_Show=StaticPopup_Show
 function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	msg=msg or "Something strange happened"
+	if type(timeout)=="function" then
+		StopCasting=data
+		data=OnCancel
+		OnAccept=timeout
+		timeout=60
+	end
 	StaticPopupDialogs["LIBINIT_POPUP"] = StaticPopupDialogs["LIBINIT_POPUP"] or
 	{
 	text = msg,
