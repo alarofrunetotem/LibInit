@@ -208,7 +208,7 @@ function lib:NewSubModule(name,...)
 	module.OnInitialized=function()end -- placeholder
 	module.OnInitialize=function(self,...) return  self:OnInitialized(...) end
 	module.OnEnable=nil
-	module.OnDisable=nill
+	module.OnDisable=nil
 	return module
 end
 function lib:NewSubClass(name)
