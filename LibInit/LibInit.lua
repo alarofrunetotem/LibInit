@@ -22,6 +22,7 @@ local MINOR_VERSION = 11
 local nop=function()end
 local dprint=function (self,...)	print(self.ID,'DBG',...) end
 local pp=print -- Keeping a handy plain print around
+if LibDebug then LibDebug() end
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
@@ -72,6 +73,7 @@ local cachedGetItemInfo
 -- Help sections
 local titles
 local RELNOTES
+local LIBRARIES
 local PROFILE
 local HELPSECTIONS
 local AceConfig = LibStub("AceConfig-3.0",true)
@@ -202,10 +204,9 @@ function lib:OnLeaveCombat(...)
 	end
 end
 function lib:NewSubModule(name,...)
-	print("Allocating submodule",name)
 	local module=self:NewModule(name,...)
-	module.OnInitialized=function()print("placeholder invoked") end -- placeholder
-	module.OnInitialize=function(self,...) print("OnInitialize",self:GetName()) return  self:OnInitialized(...) end
+	module.OnInitialized=function()end -- placeholder
+	module.OnInitialize=function(self,...) return  self:OnInitialized(...) end
 	module.OnEnable=nil
 	module.OnDisable=nill
 	return module
