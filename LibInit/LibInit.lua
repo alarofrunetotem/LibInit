@@ -18,7 +18,7 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 12
+local MINOR_VERSION = 13
 local nop=function()end
 local dprint=function (self,...)	print(self.ID,'DBG',...) end
 local pp=print -- Keeping a handy plain print around
@@ -153,7 +153,7 @@ function lib:NewAddon(name,full,...)
 	local target=Ace:NewAddon(name,unpack(mixins))
 	del(mixins)
 	target.interface=select(4,GetBuildInfo())
-	target.version=GetAddOnMetadata(name,'Version')
+	target.version=GetAddOnMetadata(name,'Version') or "Internal"
 	if (target.version:sub(1,1)=='@') then
 		target.version=GetAddOnMetadata(name,'X-Version') or 0
 	end
@@ -161,7 +161,7 @@ function lib:NewAddon(name,full,...)
 	if b and b>1 then
 			target.version=target.version:sub(1,b-1)
 	end
-	target.revision=GetAddOnMetadata(name,'X-revision')
+	target.revision=GetAddOnMetadata(name,'X-revision') or "Alpha"
 	if (target.revision:sub(1,1)=='@') then
 		target.revision='Development'
 	end
@@ -232,6 +232,25 @@ function lib:GetAddon(name)
 end
 function lib:GetLocale()
 	return AceLocale:GetLocale(self.name)
+end
+function lib:Gradient(perc)
+	return self:ColorGradient(perc,0,1,0,1,1,0,1,0,0)
+end
+function lib:ColorToString(r,g,b)
+	return format("%02X%02X%02X", 255*r, 255*g, 255*b)
+end
+function lib:ColorGradient(perc, ...)
+	if perc >= 1 then
+		local r, g, b = select(select('#', ...) - 2, ...)
+		return r, g, b
+	elseif perc <= 0 then
+		local r, g, b = ...
+		return r, g, b
+	end
+	local num = select('#', ...) / 3
+	local segment, relperc = math.modf(perc*(num-1))
+	local r1, g1, b1, r2, g2, b2 = select((segment*3)+1, ...)
+	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
 end
 local combatSchedules = lib.combatSchedules
 -- Gestione variabili
@@ -1183,15 +1202,6 @@ function lib:Debug()
 	end
 end
 
---[[
-function lib:Print(...)
-	return self:CustomPrint(nil, nil, nil, nil, nil, ' ', ...)
-end
---]]
-function lib:Dump(...)
-	return self:CustomPrint(nil, nil, nil, nil, nil, true, ...)
-end
-
 function lib:Colorize(stringa,colore)
 	return C(stringa,colore) .. "|r"
 end
@@ -1409,12 +1419,12 @@ function lib:GetCachingGetItemInfo()
 		local cache=lib.itemcache
 		wipe(cache)
 		return
-		function(itemID,index)
+		function(key,index)
 			index=index or 1
 			cache.tot=cache.tot+1
-			local cached=cache[index]
+			local cached=cache[key]
 			if (cached) then
-				return select(1,strsplit(';',cached))
+				return select(index,strsplit(';',cached))
 			end
 		end
 	end
@@ -1442,28 +1452,72 @@ function lib:Embed(target)
 	lib.mixinTargets[target] = true
 end
 
-if (not _G.table.kpairs) then
-		function _G.table.kpairs(t,f)
-			local a = {}
-			for n in pairs(t) do table.insert(a, n) end
-			table.sort(a, f)
-			local i = 0      -- iterator variable
-			local iter = function ()   -- iterator function
-				i = i + 1
-				if a[i] == nil then
-						return nil
-				else
-						local k=a[i]
-						a[i]=nil -- Should optimize memory usage
-						return k, t[k]
-				end
-			end
-			return iter
+local function kpairs(t,f)
+	local a = new()
+	for n in pairs(t) do table.insert(a, n) end
+	table.sort(a, f)
+	local i = 0      -- iterator variable
+	local iter = function ()   -- iterator function
+		i = i + 1
+		if a[i] == nil then
+				del(a)
+				return nil
+		else
+				local k=a[i]
+				a[i]=nil -- Should optimize memory usage
+				return k, t[k]
 		end
+	end
+	return iter
 end
 if (not _G.kpairs) then
-		_G.kpairs=table.kpairs
+		_G.kpairs=kpairs
 end
+-- This metatable is used to generate a sorted proxy to an hashed table.
+-- It should not used directly
+lib.mt={__metatable=true,__version=MINOR_VERSION}
+local mt=lib.mt
+function mt:__index(k)
+	print(self,self.__source)
+	if k=="n" then
+		return #mt.keys[self.__source]
+	end
+	return self.__source[k]
+end
+function mt:__len()
+	return #self.__keys
+end
+function mt:__newindex(k,v)
+	local pos=#self.__keys+1
+	for i,x in ipairs(self.__keys) do
+		if x>k then
+			pos=i
+			break;
+		end
+	end
+	if (k:sub(1,2)~="__") then
+		table.insert(self.__keys,pos,k)
+	end
+	self.__source[k]=v -- We want to trigger metamethods on original table
+end
+function mt:__call()
+	do
+		local current=0
+		return function(unsorted,i)
+			current=current+1
+			local k=self.__keys[current]
+			if k then return k,self.__source[k] end
+		end,self,0
+	end
+end
+function lib:GetSortedProxy(table)
+	local proxy=setmetatable({__keys={},__source=table,__metatable=true},mt)
+	for k,v in pairs(table) do
+		proxy[k]=v
+	end
+	return proxy
+end
+
 -------------------------------------------------------------------------------
 -- ScheduleLeaveCombatAction Port
 -- Shamelessly stolen from Ace2
