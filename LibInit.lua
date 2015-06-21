@@ -21,5 +21,5 @@ function core:Mark(args,chatFrame)
 	AXI:SetFrameLevel(999)
 	AXI:Show()
 end
-print("Loaded core utils")
+print("Loaded Libinit Core Utils")
 --@end-do-not-package@
