@@ -2,6 +2,12 @@
 -- This file intentionally blank for non internal release
 --@do-not-package@
 local core=LibStub("AceAddon-3.0"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
+local pp=function() end
+if LibDebug then
+	LibDebug()
+	pp=print
+end
+local print =pp
 LoadAddOn("Blizzard_DebugTools")
 function core:OnInitialize()
 	self:RegisterChatCommand("mark","Mark")

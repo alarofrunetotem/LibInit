@@ -18,11 +18,17 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 15
+local MINOR_VERSION = 16
 local nop=function()end
 local pp=print -- Keeping a handy plain print around
-if LibDebug then LibDebug() end
-local dprint=function (self,...)	print(self.ID,'DBG',...) end
+local _G=_G -- Unmodified env
+local dprint=function() end
+if LibDebug then
+	--pulling libdebug print in without pulling also the whole _G management and without changing loading addon env
+	LibDebug()
+	dprint=print
+	setfenv(1,_G)
+end
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
@@ -32,9 +38,9 @@ local lib=module --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
 local I=LibStub("LibItemUpgradeInfo-1.0")
-
 -- Upvalues
 local _G=_G
+dprint("Local _G",_G)
 local floor=floor
 local abs=abs
 local wipe=wipe
@@ -565,6 +571,7 @@ function lib:RegisterDatabase(dbname,defaults,profile)
 	return AceDB:New(dbname,defaults,profile)
 end
 function lib:OnInitialize(...)
+	dprint("OnIntialize",...)
 
 --@debug@
 	LoadAddOn("Blizzard_DebugTools")
@@ -1690,12 +1697,20 @@ local factory={} --#factory
 do
 	local nonce=0
 	local GetTime=GetTime
+	local function SetScript(this,...)
+		this.child:SetScript(...)
+	end
+	local function SetStep(this,value)
+		this:SetObeyStepOnDrag(true)
+		this:SetValueStep(value)
+		this:SetStepsPerPage(1)
+	end
 	function factory:Slider(father,min,max,current,message,tooltip)
 		if type(message)=="table" then
 			tooltip=message.desc
 			message=message.name
 		end
-		local name=tostring(self)..GetTime()*1000 ..nonce
+		local name=tostring(GetTime()*1000) ..nonce
 		nonce=nonce+1
 		local sl = CreateFrame('Slider',name, father, 'OptionsSliderTemplate')
 		sl:SetWidth(128)
@@ -1703,7 +1718,7 @@ do
 		sl:SetOrientation('HORIZONTAL')
 		sl:SetMinMaxValues(min, max)
 		sl:SetValue(current)
-		sl:SetValueStep(1)
+		sl.SetStep=SetStep
 		sl.Low=_G[name ..'Low']
 		sl.Low:SetText(min)
 		sl.High=_G[name .. 'High']
@@ -1722,7 +1737,7 @@ do
 			return value
 		end
 		sl:SetScript("OnValueChanged",sl.OnValueChanged)
-		sl.tooltip=tooltip
+		sl.tooltipText=tooltip
 		return sl
 	end
 	function factory:Checkbox(father,current,message,tooltip)
@@ -1730,14 +1745,20 @@ do
 			tooltip=message.desc
 			message=message.name
 		end
-		local name=tostring(self)..GetTime()*1000 ..nonce
+		local name=tostring(GetTime()*1000) ..nonce
 		nonce=nonce+1
-		local ck=CreateFrame("CheckButton",name,father,"ChatConfigCheckButtonTemplate")
+		local frame=CreateFrame("Frame",nil,father)
+		local ck=CreateFrame("CheckButton",name,frame,"ChatConfigCheckButtonTemplate")
+		frame.SetScript=SetScript
+		frame.child=ck
+		ck:SetPoint('TOPLEFT')
 		ck.Text=_G[name..'Text']
 		ck.Text:SetText(message)
 		ck:SetChecked(current)
 		ck.tooltip=tooltip
-		return ck
+		frame:SetWidth(ck:GetWidth()+ck.Text:GetWidth()+2)
+		frame:SetHeight(ck:GetHeight())
+		return frame
 	end
 	function factory:Dropdown(father,current,list,message,tooltip)
 		if type(message)=="table" then
@@ -1776,7 +1797,7 @@ do
 			self.OnChange=func
 		end
 		dd.list=list
-		local name=tostring(self)..GetTime()*1000 ..nonce
+		local name=tostring(GetTime()*1000) ..nonce
 		nonce=nonce+1
 		dd.dropdown=CreateFrame('Frame',name,father,"UIDropDownMenuTemplate")
 		UIDropDownMenu_Initialize(frame, function(...)
@@ -1801,6 +1822,27 @@ do
 end
 function lib:GetFactory()
 	return factory
+end
+---@function [parent=#ns] Configure
+local meta={__index=_G,
+__newindex=function(t,k,v)
+	dprint(t,k,v)
+	assert(type(_G[k]) == 'nil',"Attempting to override global " ..k)
+	return rawset(t,k,v)
+end
+}
+function lib.SetCustomEnvironment(ENV)
+	local old_env = getfenv(2)
+	if old_env==ENV then return end
+	if getmetatable(ENV)==meta then return end
+	if not getmetatable(ENV) then
+		if not ENV.print then ENV.print=dprint end
+		setmetatable(ENV,meta)
+		ENV.dprint=dprint
+	else
+		assert(false,"ENV already has metatable")
+	end
+	setfenv(2, ENV)
 end
 --- reembed routine
 for target,_ in pairs(lib.mixinTargets) do
