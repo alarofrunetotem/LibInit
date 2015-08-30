@@ -33,11 +33,19 @@ end
 local me, ns = ...
 local LibStub=LibStub
 local module,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
-if (not module) then return end -- Already exists this same version
+if module then
+	if old then
+		dprint("Upgrading ",MAJOR_VERSION,old,'to',MINOR_VERSION)
+	else
+		dprint("Loading ",MAJOR_VERSION,MINOR_VERSION)
+	end
+else
+	dprint("Equal or newer",MAJOR_VERSION,'already loaded')
+	return
+end
 local lib=module --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
-local I=LibStub("LibItemUpgradeInfo-1.0")
 -- Upvalues
 local _G=_G
 dprint("Local _G",_G)
@@ -333,11 +341,13 @@ function lib:Parse(msg,n)
 end
 ---
 -- Parses an itemlink and returns itemId without calling API again
--- @param itemlink string
--- @return number itemId or 0
+-- @param #Lib self
+-- @param #string itemlink
+-- @return #number itemId or 0
 function lib:GetItemID(itemlink)
 	if (type(itemlink)=="string") then
-			return tonumber(GetItemInfoFromHyperlink(itemlink)) or 0
+			local itemid,context=GetItemInfoFromHyperlink(itemlink)
+			return tonumber(itemid) or 0
 			--return tonumber(itemlink:match("Hitem:(%d+):")) or 0
 	else
 			return 0
@@ -460,7 +470,7 @@ function lib:NumericVersion()
 	end
 end
 function lib:OnInitialized()
-	print(L["You should at least override this function to make a working addon"])
+	print("|cff33ff99"..tostring( self ).."|r:",L["You should at least override this function to make a working addon"])
 end
 function lib:LoadHelp()
 end
@@ -528,6 +538,10 @@ local function LoadDefaults(self)
 		}
 	}
 	self.DbDefaults={
+		char={
+			firstrun=true,
+			lastversion=0,
+		},
 		global={
 			firstrun=true,
 			lastversion=0,
@@ -571,9 +585,8 @@ function lib:RegisterDatabase(dbname,defaults,profile)
 	return AceDB:New(dbname,defaults,profile)
 end
 function lib:OnInitialize(...)
-	dprint("OnIntialize",...)
-
 --@debug@
+	dprint("OnInitialize",...)
 	LoadAddOn("Blizzard_DebugTools")
 --@end-debug@
 	self.numericversion=self:NumericVersion() -- Initialized now becaus NumericVersion could be overrided
@@ -606,7 +619,10 @@ function lib:OnInitialize(...)
 					end
 			}
 	)
+	--===============================================================================
+	-- Calls initialization Callback
 	local ignoreProfile=self:OnInitialized(...)
+	--===============================================================================
 	if (not self.OnDisabled) then
 		self.OptionsTable.args.on=nil
 		self.OptionsTable.args.off=nil
@@ -1401,47 +1417,6 @@ end
 function lib:GetColorTable()
 	return C
 end
-lib.emptytable={false,false}
-lib.itemcache=lib.itemcache or
-	setmetatable({miss=0,tot=0},{
-		__index=function(table,key)
-			if (not key) then return "" end
-			if (key=="miss") then return 0 end
-			if (key=="tot") then return 0 end
-			local cached=strjoin(';',tostringall(GetItemInfo(key)))
-			local itemLink=select(2,strsplit(';',cached))
-			if not itemLink then return nil end
-			local itemID=lib:GetItemID(itemLink)
-			local name=select(1,strsplit(';',cached))
-			rawset(table,itemLink,cached)
-			rawset(table,itemID,cached)
-			rawset(table,name,cached)
-			table.miss=table.miss+1
-			return cached
-		end
-
-	})
-function lib:GetCachingGetItemInfo()
-	do
-		local cache=lib.itemcache
-		wipe(cache)
-		return
-		function(key,index)
-			index=index or 1
-			cache.tot=cache.tot+1
-			local cached=cache[key]
-			if (cached) then
-				return select(index,strsplit(';',cached))
-			end
-		end
-	end
-end
-function lib:GetCacheStats()
-	local c=lib.itemcache
-	local h=c.tot-c.miss
-	local perc=( h>0) and h/c.tot*100 or 0
-	return c.miss,h,perc
-end
 -- In case of upgrade, we need to redo embed for ALL Addons
 -- This function get called on addon creation
 -- Anything I define here is immediately available to addon code
@@ -1736,6 +1711,9 @@ do
 			end
 			return value
 		end
+		sl.SetText=function(this,value) this.Text:SetText(value) end
+		sl.SetFormattedText=function(this,...) this.Text:SetFormattedText(...) end
+		sl.SetTextColor=function(this,...) this.Text:SetTextColor(...) end
 		sl:SetScript("OnValueChanged",sl.OnValueChanged)
 		sl.tooltipText=tooltip
 		return sl
@@ -1849,7 +1827,7 @@ for target,_ in pairs(lib.mixinTargets) do
 	lib:Embed(target)
 end
 local l=LibStub("AceLocale-3.0")
--- To avoid clash between versions, localization is versione on major and minor
+-- To avoid clash between versions, localization is versioned on major and minor
 -- Lua strings are immutable so having more copies of the same string does not waist a noticeable slice of memory
 local me=MAJOR_VERSION .. MINOR_VERSION
 --@do-not-package@
