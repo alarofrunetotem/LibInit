@@ -18,7 +18,7 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 16
+local MINOR_VERSION = 17
 local nop=function()end
 local pp=print -- Keeping a handy plain print around
 local _G=_G -- Unmodified env
