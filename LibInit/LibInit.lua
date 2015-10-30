@@ -211,12 +211,25 @@ if not lib.CombatScheduler then
 	end)
 	lib.CombatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 end
-function lib:OnLeaveCombat(...)
-	lib._OnLeaveCombat(self,"LIBINIT_END_COMBAT",...)
+local tremove=tremove
+local function Run(args) tremove(args,1)(unpack(args)) end
+function lib:OnLeaveCombat(action,...)
+	if type(action)~="string" and type(action)~="function" then
+		error("Usage: OnLeaveCombat (\"action\", ...): 'action' - string or function expected.", 2)
+	end
+	if type(action)=="string" and type(self[action]) ~= "function" then
+		error("Usage: OnLeaveCombat (\"action\", ...): 'action' - method '"..tostring(action).."' not found on self.", 2)
+	end
+	if type(action) =="string" then
+		lib._OnLeaveCombat(self,"LIBINIT_END_COMBAT",Run,{self[action],self,...})
+	else
+		lib._OnLeaveCombat(self,"LIBINIT_END_COMBAT",Run,{action,...})
+	end
 	if (not InCombatLockdown()) then
 		lib.CombatFrame:GetScript("OnEvent")()
 	end
 end
+
 function lib:NewSubModule(name,...)
 	local module=self:NewModule(name,...)
 	module.OnInitialized=function()end -- placeholder
@@ -1553,6 +1566,7 @@ do
 end
 
 function lib:ScheduleLeaveCombatAction(method, ...)
+	if true then return self:OnLeaveCombat(method,...) end
 	local style = type(method)
 	if style == "string" and type(self[method]) ~= "function" then
 		error("Cannot schedule a combat action to method %q, it does not exist", method)
