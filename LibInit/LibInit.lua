@@ -1,3 +1,4 @@
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- MUST BE LINE 1
 --- **LibInit** should make using Ace3 even more easier and pleasant
 -- LibInit pulls Ace 3 for you if you use the curse packager and set it this way:
 --
@@ -35,12 +36,12 @@ local LibStub=LibStub
 local module,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
 if module then
 	if old then
-		dprint("Upgrading ",MAJOR_VERSION,old,'to',MINOR_VERSION)
+		dprint("Upgrading ",MAJOR_VERSION,old,'to',MINOR_VERSION,'from',__FILE__)
 	else
-		dprint("Loading ",MAJOR_VERSION,MINOR_VERSION)
+		dprint("Loading ",MAJOR_VERSION,MINOR_VERSION,'from',__FILE__)
 	end
 else
-	dprint("Equal or newer",MAJOR_VERSION,'already loaded')
+	dprint("Equal or newer",MAJOR_VERSION,'already loaded','from',__FILE__)
 	return
 end
 local lib=module --#Lib
