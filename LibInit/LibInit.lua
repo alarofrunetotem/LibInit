@@ -18,7 +18,7 @@
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 18
+local MINOR_VERSION = 19
 local nop=function()end
 local pp=print -- Keeping a handy plain print around
 local _G=_G -- Unmodified env
@@ -169,7 +169,7 @@ function lib:NewAddon(name,full,...)
 	target.interface=select(4,GetBuildInfo())
 	target.version=GetAddOnMetadata(name,'Version') or "Internal"
 	if (target.version:sub(1,1)=='@') then
-		target.version=GetAddOnMetadata(name,'X-Version') or 0
+		target.version=GetAddOnMetadata(name,'X-Version') or "Internal"
 	end
 	local b,e=target.version:find(" ")
 	if b and b>1 then
@@ -911,6 +911,7 @@ function lib:AddText(text,image,imageHeight,imageWidth,imageCoords)
 end
 
 --self:AddToggle("AUTOLEAVE",true,"Quick Battlefield Leave","Alt-Click on hide button in battlefield alert leaves the queue")
+function lib:AddBoolean(...) return self:AddToggle(...) end
 function lib:AddToggle(flag,defaultvalue,name,description,icon)
 	description=description or name
 	local group=getgroup(self)
@@ -933,6 +934,7 @@ function lib:AddToggle(flag,defaultvalue,name,description,icon)
 	end
 	return t
 end
+
 -- self:AddEdit("REFLECTTO",1,{a=1,b=2},"Whisper reflection receiver:","All your whispers will be forwarded to this guy")
 function lib:AddSelect(flag,defaultvalue,values,name,description)
 	description=description or name
@@ -1242,7 +1244,7 @@ function lib:Colorize(stringa,colore)
 	return C(stringa,colore) .. "|r"
 end
 function lib:GetTocVersion()
-	return tonumber(wow.TocVersion) or 0
+	return select(4,GetBuildInfo())
 end
 function lib:Toggle()
 	if (self:IsEnabled()) then
