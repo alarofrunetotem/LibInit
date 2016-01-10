@@ -4,3 +4,4 @@ enable-nolib-creation: no
 ignore:
 - luac.out
 - doc.txt
+- ace.sh

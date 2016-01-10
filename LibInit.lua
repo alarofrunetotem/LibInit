@@ -1,16 +1,22 @@
 -- Development Utilities
 -- This file intentionally blank for non internal release
 --@do-not-package@
-local core=LibStub("AceAddon-3.0"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
-local pp=function() end
+local core=LibStub("LibInit"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
+local print=print
+LoadAddOn("Blizzard_DebugTools")
+LoadAddOn("LibDebug")
 if LibDebug then
 	LibDebug()
-	pp=print
+else
+	print("Missing LibDebug",LibDebug)
 end
-local print =pp
-LoadAddOn("Blizzard_DebugTools")
-function core:OnInitialize()
+function core:OnInitialized()
 	self:RegisterChatCommand("mark","Mark")
+	self:AddLabel("LibInit Core Utils Loaded")
+	for major,_ in LibStub:IterateLibraries() do
+		local l,minor=LibStub:GetLibrary(major)
+		print(major,minor)
+	end
 end
 local lastframe
 function core:Mark(args,chatFrame)

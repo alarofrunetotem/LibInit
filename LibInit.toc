@@ -13,5 +13,5 @@
 ## X-eMail: alar@aspide.it
 ## X-Date: @project-date-iso@
 ## X-Embeds:
-LibInit.xml
+embeds.xml
 LibInit.lua

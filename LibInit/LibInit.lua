@@ -19,7 +19,7 @@ local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- MUST BE LINE 1
 -- @name LibInit
 --
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 19
+local MINOR_VERSION = 20
 local nop=function()end
 local pp=print -- Keeping a handy plain print around
 local _G=_G -- Unmodified env
@@ -92,12 +92,13 @@ local LIBRARIES
 local PROFILE
 local HELPSECTIONS
 local AceConfig = LibStub("AceConfig-3.0",true)
+assert(AceConfig,"LibInit needs AceConfig-3.0")
 local AceRegistry = LibStub("AceConfigRegistry-3.0",true)
 local AceDBOptions=LibStub("AceDBOptions-3.0",true)
 local AceConfigDialog=LibStub("AceConfigDialog-3.0",true)
 local AceGUI=LibStub("AceGUI-3.0",true)
 local Ace=LibStub("AceAddon-3.0")
-local AceLocale=LibStub("AceLocale-3.0")
+local AceLocale=LibStub("AceLocale-3.0",true)
 local AceDB  = LibStub("AceDB-3.0",true)
 
 -- Recycling function from ACE3
@@ -611,12 +612,22 @@ function lib:OnInitialize(...)
 	if (AceDB and not self.db) then
 		self.db=AceDB:New(self.DATABASE,nil,defaultProfile)
 	end
-	self.db:RegisterDefaults(self.DbDefaults)
-	if (not self.db.global.silent) then
-		self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
-		self:Print("You can disable this message with /" .. strlower(self.ID) .. " silent")
+	if self.db then
+		self.db:RegisterDefaults(self.DbDefaults)
+		if (not self.db.global.silent) then
+			self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
+			self:Print("You can disable this message with /" .. strlower(self.ID) .. " silent")
+		end
+		self:SetEnabledState(self:GetBoolean("Active"))
+	else
+		self.db=setmetatable({},{
+			__index=function(t,l)
+				assert(false,"You need AceDB-3.0 in order to use database")
+			end
+			}
+		)
+		self:SetEnabledState(true)
 	end
-	self:SetEnabledState(self:GetBoolean("Active"))
 	-- I have for sure some library that needs to be intialized Before the addon
 	for _,library in self:IterateEmbeds(self) do
 		local lib=LibStub(library)
@@ -645,22 +656,26 @@ function lib:OnInitialize(...)
 	if (type(self.LoadHelp)=="function") then self:LoadHelp() end
 	local main=self.name
 	BuildHelp(self)
-	AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(self.ID)})
-	self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
-	if (not ignoreProfile) then
-		if (AceDBOptions) then
-			self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
-			titles.PROFILE=self.ProfileOpts.name
-			self.ProfileOpts.name=self.name
-			local profile=main..PROFILE
+	if AceConfig then
+		AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(self.ID)})
+		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
+		if (not ignoreProfile) then
+			if (AceDBOptions) then
+				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
+				titles.PROFILE=self.ProfileOpts.name
+				self.ProfileOpts.name=self.name
+				local profile=main..PROFILE
+			end
+			AceConfig:RegisterOptionsTable(main .. PROFILE,self.ProfileOpts)
+			AceConfigDialog:AddToBlizOptions(main .. PROFILE,titles.PROFILE,main)
 		end
-		AceConfig:RegisterOptionsTable(main .. PROFILE,self.ProfileOpts)
-		AceConfigDialog:AddToBlizOptions(main .. PROFILE,titles.PROFILE,main)
 	end
 	if (self.help[RELNOTES]~='') then
 		self.CfgRel=AceConfigDialog:AddToBlizOptions(main..RELNOTES,titles.RELNOTES,main)
 	end
-	self:UpdateVersion()
+	if AceDB then
+		self:UpdateVersion()
+	end
 end
 function lib:UpdateVersion()
 	if (type(self.db.char) == "table") then
@@ -1064,7 +1079,6 @@ function lib:AddTable(flag,table)
 	lib.toggles[self][flag]=table
 end
 local function OpenCmd(self,info,args)
-	print("libinit",info.arg,self,args,strsplit(' ',args))
 	return self[info.arg](self,args,strsplit(' ',args))
 end
 function lib:AddOpenCmd(command,method,description,arguments,private)
@@ -1135,7 +1149,7 @@ end
 
 
 
---self:AddCmd(flag,method,name,description)
+--self:AddChatCmd(method,label,description)
 function lib:AddChatCmd(method,label,description)
 	if (not self.RegisterChatCommand) then
 		LibStub("AceConsole-3.0"):Embed(self)
@@ -1844,7 +1858,13 @@ end
 for target,_ in pairs(lib.mixinTargets) do
 	lib:Embed(target)
 end
-local l=LibStub("AceLocale-3.0")
+local l=AceLocale
+if not l then
+	L=setmetatable({},{
+		__index=function(t,k) return k end
+	})
+	return
+end
 -- To avoid clash between versions, localization is versioned on major and minor
 -- Lua strings are immutable so having more copies of the same string does not waist a noticeable slice of memory
 local me=MAJOR_VERSION .. MINOR_VERSION
