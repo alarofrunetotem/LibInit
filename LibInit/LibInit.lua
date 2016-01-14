@@ -18,38 +18,50 @@ local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- MUST BE LINE 1
 -- @class file
 -- @name LibInit
 --
+
 local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 20
+local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
+local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
 local pp=print -- Keeping a handy plain print around
 local _G=_G -- Unmodified env
 local dprint=function() end
+--@debug@
+LoadAddOn("LibDebug")
+LoadAddOn("Blizzard_DebugTools")
 if LibDebug then
 	--pulling libdebug print in without pulling also the whole _G management and without changing loading addon env
 	LibDebug()
 	dprint=print
 	setfenv(1,_G)
 end
+--@end-debug@
 --GAME_LOCALE="itIT"
 local me, ns = ...
 local LibStub=LibStub
-local module,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
-if module then
+local obj,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
+local upgrading
+if obj then
+	upgrading=old
+--@debug@
 	if old then
-		dprint("Upgrading ",MAJOR_VERSION,old,'to',MINOR_VERSION,'from',__FILE__)
+		dprint(strconcat("Upgrading ",MAJOR_VERSION,'.',old,' to',MINOR_VERSION,' from ',__FILE__))
 	else
-		dprint("Loading ",MAJOR_VERSION,MINOR_VERSION,'from',__FILE__)
+		dprint(strconcat("Loading ",MAJOR_VERSION,'.',MINOR_VERSION,' from ',__FILE__))
 	end
+--@end-debug@
 else
-	dprint("Equal or newer",MAJOR_VERSION,'already loaded','from',__FILE__)
+--@debug@
+	dprint(strconcat("Equal or newer ",MAJOR_VERSION,' already loaded from ',__FILE__))
+--@end-debug@
 	return
 end
-local lib=module --#Lib
+local lib=obj --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
 -- Upvalues
 local _G=_G
-dprint("Local _G",_G)
 local floor=floor
 local abs=abs
 local wipe=wipe
@@ -84,6 +96,8 @@ local strsplit=strsplit
 local select=select
 local coroutine=coroutine
 local cachedGetItemInfo
+local toc=select(4,GetBuildInfo())
+
 --]]
 -- Help sections
 local titles
@@ -145,50 +159,96 @@ lib.debugs=lib.debugs or {}
 lib.toggles=lib.toggles or {}
 lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
-function lib:NewAddon(name,full,...)
-	if (not Ace) then
-		error("Could not find Ace3 Library")
-		return
+lib.options=lib.options or {}
+--- Create a new AceAddon-3.0 addon.
+-- Any libraryyou specified will be embeded, and the addon will be scheduled for
+-- its OnInitializee and OnEnabled callbacks.
+-- The final addon object, with all libraries embeded, will be returned.
+-- @param object Table to use as a base for the addon (optional)
+-- @param name Name of the addon object to create
+-- @param lib List of libraries to embed into the addon
+-- @param options options list
+--
+-- @usage
+-- Create a simple addon object
+-- MyAddon = LibStub("LibInit"):NewAddon("MyAddon", "AceEvent-3.0")
+--
+-- -- Create a Addon object based on the table of a frame
+-- local MyFrame = CreateFrame("Frame")
+-- MyAddon = LibStub("LibInit"):NewAddon(MyFrame, "MyAddon", "AceEvent-3.0")
+function lib:NewAddon(target,...)
+	local name
+	local customOptions
+	local start=1
+	if type(target) ~= "table" then
+		name=target
+		target={}
+	else
+		name=(select(1,...))
+		start=2
+	end
+	assert(Ace,"Could not find Ace3 Library")
+	assert(type(name)=="string","Name is mandatory")
+	local appo={}
+	appo[MAJOR_VERSION]=true
+	appo["AceConsole-3.0"]=true
+	for i=start,select('#',...) do
+		local mix=select(i,...)
+		if type(mix)=="boolean" and mix then
+			for n,k in  LibStub:IterateLibraries() do
+				if (n:match("Ace%w*-3%.0") and k.Embed) then appo[n]=true end
+			end
+		elseif type(mix)=="string" then
+			appo[mix]=true
+		elseif type(mix)=="table" then
+			customOptions=mix
+		end
 	end
 	local mixins=new()
-	if (type(full)=='boolean') then
-		for i,k in  LibStub:IterateLibraries() do
-			if (i:match("Ace%w*-3%.0") and k.Embed) then tinsert(mixins,i) end
-		end
-	else
-		tinsert(mixins,full)
+	for i,_ in pairs(appo) do
+		tinsert(mixins,i)
 	end
-	tinsert(mixins,MAJOR_VERSION)
-	tinsert(mixins,"AceConsole-3.0")
-	for i=1,select('#',...) do
-		local mix=select(i,...)
-		if (mix ~="AceConsole-3.0") then
-			tinsert(mixins,mix)
-		end
-	end
-	local target=Ace:NewAddon(name,unpack(mixins))
+	print(unpack(mixins))
+	local target=Ace:NewAddon(target,name,unpack(mixins))
 	del(mixins)
-	target.interface=select(4,GetBuildInfo())
-	target.version=GetAddOnMetadata(name,'Version') or "Internal"
-	if (target.version:sub(1,1)=='@') then
-		target.version=GetAddOnMetadata(name,'X-Version') or "Internal"
+	appo=nil
+	lib.options[target]={}
+	local options=lib.options[target]
+	options.name=name
+	options.version=GetAddOnMetadata(name,'Version') or "Internal"
+	if (options.version:sub(1,1)=='@') then
+		options.version=GetAddOnMetadata(name,'X-Version') or "Internal"
 	end
-	local b,e=target.version:find(" ")
+	local b,e=options.version:find(" ")
 	if b and b>1 then
-			target.version=target.version:sub(1,b-1)
+			options.version=options.version:sub(1,b-1)
 	end
-	target.revision=GetAddOnMetadata(name,'X-revision') or "Alpha"
-	if (target.revision:sub(1,1)=='@') then
-		target.revision='Development'
+	options.revision=GetAddOnMetadata(name,'X-revision') or "Alpha"
+	if (options.revision:sub(1,1)=='@') then
+		options.revision='Development'
 	end
-	target.prettyversion=format("%s (Revision: %s)",tostringall(target.version,target.revision))
-	target.title=GetAddOnMetadata(name,"title") or 'No title'
-	target.notes=GetAddOnMetadata(name,"notes") or 'No notes'
+	options.prettyversion=format("%s (Revision: %s)",tostringall(options.version,options.revision))
+	options.title=GetAddOnMetadata(name,"title") or 'No title'
+	options.notes=GetAddOnMetadata(name,"notes") or 'No notes'
 	-- Setting sensible default for mandatory fields
-	target.ID=GetAddOnMetadata(name,"X-ID") or (target.name:gsub("[^%u%d]","") .. "XXXX"):sub(1,3)
-	target.DATABASE=GetAddOnMetadata(name,"X-Database") or "db" .. target.ID
+	options.ID=GetAddOnMetadata(name,"X-ID") or name
+	options.DATABASE=GetAddOnMetadata(name,"X-Database") or "db" .. options.ID
 	lib.addon[target]=name
 	lib.toggles[target]={}
+	if customOptions then
+		for k,v in pairs(customOptions) do
+			local key=strlower(k)
+			if 	key=="profile"
+				or key=="noswitch"
+				or key=="nogui"
+				or key=="nohelp"
+					then
+				lib.options[key]=v
+			else
+				error("Invalid options: " .. k)
+			end
+		end
+	end
 	RELNOTES=L["Release Notes"]
 	PROFILE=L["Profile"]
 	HELPSECTIONS={PROFILE,RELNOTES}
@@ -233,12 +293,12 @@ function lib:OnLeaveCombat(action,...)
 end
 
 function lib:NewSubModule(name,...)
-	local module=self:NewModule(name,...)
-	module.OnInitialized=function()end -- placeholder
-	module.OnInitialize=function(self,...) return  self:OnInitialized(...) end
-	module.OnEnable=nil
-	module.OnDisable=nil
-	return module
+	local obj=self:NewModule(name,...)
+	obj.OnInitialized=function()end -- placeholder
+	obj.OnInitialize=function(self,...) return  self:OnInitialized(...) end
+	obj.OnEnable=nil
+	obj.OnDisable=nil
+	return obj
 end
 function lib:NewSubClass(name)
 	return self:NewSubModule(name,self)
@@ -485,7 +545,7 @@ function lib:NumericVersion()
 	end
 end
 function lib:OnInitialized()
-	print("|cff33ff99"..tostring( self ).."|r:",L["You should at least override this function to make a working addon"])
+	print("|cff33ff99"..tostring( self ).."|r:",format(ITEM_MISSING,"OnInitialized"))
 end
 function lib:LoadHelp()
 end
@@ -493,17 +553,18 @@ function lib:SetDbDefaults()
 end
 function lib:SetOptionsTable()
 end
-local function LoadDefaults(self)
+local function loadOptionsTable(self)
+	local options=lib.options[self]
 	self.OptionsTable={
 		handler=self,
 		type="group",
 		childGroups="tab",
-		name=self.title,
-		desc=self.notes,
+		name=options.title,
+		desc=options.notes,
 		args={
 			gui = {
 				name="GUI",
-				desc="Activates gui",
+				desc=_G.CHAT_CONFIGURATION,
 				type="execute",
 				func="Gui",
 				guiHidden=true,
@@ -516,7 +577,6 @@ local function LoadDefaults(self)
 				func="Help",
 				guiHidden=true,
 			},
---@end-debug@
 			debug = {
 				name="DBG",
 				desc="Enable debug",
@@ -525,6 +585,7 @@ local function LoadDefaults(self)
 				guiHidden=true,
 				cmdHidden=true,
 			},
+--@end-debug@
 			silent = {
 				name="SILENT",
 				desc="Eliminates startup messages",
@@ -536,15 +597,15 @@ local function LoadDefaults(self)
 				guiHidden=true,
 			},
 			on = {
-				name="On",
-				desc="Activates " .. self.title,
+				name=strlower(_G.ENABLE),
+				desc=_G.ENABLE .. ' ' .. options.title,
 				type="execute",
 				func="Enable",
 				guiHidden=true,
 			},
 			off = {
-				name="Off",
-				desc="Deactivates " .. self.title,
+				name=strlower(_G.DISABLE),
+				desc=_G.DISABLE .. ' ' .. options.title,
 				type="execute",
 				func="Disable",
 				guiHidden=true,
@@ -552,6 +613,8 @@ local function LoadDefaults(self)
 			},
 		}
 	}
+end
+local function loadDbDefaults(self)
 	self.DbDefaults={
 		char={
 			firstrun=true,
@@ -560,7 +623,7 @@ local function LoadDefaults(self)
 		global={
 			firstrun=true,
 			lastversion=0,
-			lastinterface=60000
+			lastinterface=60200
 		},
 		profile={
 			toggles={
@@ -602,21 +665,26 @@ end
 function lib:OnInitialize(...)
 --@debug@
 	dprint("OnInitialize",...)
-	LoadAddOn("Blizzard_DebugTools")
 --@end-debug@
 	self.numericversion=self:NumericVersion() -- Initialized now becaus NumericVersion could be overrided
 	--CachedGetItemInfo=self:GetCachingGetItemInfo()
-	LoadDefaults(self)
-	local defaultProfile=self:SetDbDefaults(self.DbDefaults)
+	loadOptionsTable(self)
+	loadDbDefaults(self)
 	self:SetOptionsTable(self.OptionsTable)
+	self:SetDbDefaults(self.DbDefaults) -- hook
+	local options=lib.options[self]
+--			if 	key=="profile"
+--				or key=="noswitch"
+--				or key=="nogui"
+--				or key=="nohelp"
 	if (AceDB and not self.db) then
-		self.db=AceDB:New(self.DATABASE,nil,defaultProfile)
+		self.db=AceDB:New(options.DATABASE,nil,options.profile)
 	end
 	if self.db then
 		self.db:RegisterDefaults(self.DbDefaults)
 		if (not self.db.global.silent) then
-			self:Print(format("Version %s %s loaded",self:Colorize(self.version,'green'),self:Colorize(format("(Revision: %s)",self.revision),"silver")))
-			self:Print("You can disable this message with /" .. strlower(self.ID) .. " silent")
+			self:Print(format("Version %s %s loaded",self:Colorize(options.version,'green'),self:Colorize(format("(Revision: %s)",options.revision),"silver")))
+			self:Print("You can disable this message with /" .. strlower(options.ID) .. " silent")
 		end
 		self:SetEnabledState(self:GetBoolean("Active"))
 	else
@@ -654,12 +722,13 @@ function lib:OnInitialize(...)
 		self.OptionsTable.args.standby=nil
 	end
 	if (type(self.LoadHelp)=="function") then self:LoadHelp() end
-	local main=self.name
+	local main=options.name
 	BuildHelp(self)
-	if AceConfig then
-		AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(self.ID)})
+	if AceConfig and not options.nogui then
+		dprint(main,self.OptionsTable,{main,strlower(options.ID)})
+		AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(options.ID)})
 		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
-		if (not ignoreProfile) then
+		if (not ignoreProfile and not options.noswitch) then
 			if (AceDBOptions) then
 				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
 				titles.PROFILE=self.ProfileOpts.name
@@ -669,6 +738,8 @@ function lib:OnInitialize(...)
 			AceConfig:RegisterOptionsTable(main .. PROFILE,self.ProfileOpts)
 			AceConfigDialog:AddToBlizOptions(main .. PROFILE,titles.PROFILE,main)
 		end
+	else
+		self.OptionsTable.args.gui=nil
 	end
 	if (self.help[RELNOTES]~='') then
 		self.CfgRel=AceConfigDialog:AddToBlizOptions(main..RELNOTES,titles.RELNOTES,main)
@@ -722,7 +793,7 @@ do
 end
 
 function lib:HF_Toggle(flag,description)
-	flag=C(format("/%s toggle %s: ",strlower(self.ID),flag),'orange') ..C(description,'white')
+	flag=C(format("/%s toggle %s: ",strlower(lib.options[self].ID),flag),'orange') ..C(description,'white')
 	self:HF_Push(TOGGLES,"\n" .. C(flag,'orange'))
 end
 
@@ -741,7 +812,7 @@ function lib:HF_CmdA(command,description,tooltip)
 	C('/' .. command,'orange') .. ' : ' .. (description or '') .. '\n' .. C(tooltip or '','yellow'))
 end
 function lib:HF_Cmd(command,description,tooltip)
-	command=self.ID .. ' ' .. command
+	command=lib.options[self].ID .. ' ' .. command
 	self:HF_CmdA(command,description,tooltip)
 end
 function lib:HF_Pre(testo,section)
@@ -834,7 +905,7 @@ function lib:HF_Load(section,optionname,versione)
 	--debug(self.title)
 	if (testo ~= '') then
 		AceConfig:RegisterOptionsTable(optionname, {
-			name = self.title .. (versione or ""),
+			name = lib.options[self].title .. (versione or ""),
 			type = "group",
 			args = {
 				help = {
@@ -976,6 +1047,7 @@ function lib:AddSelect(flag,defaultvalue,values,name,description)
 end
 
 --self:AddSlider("RESTIMER",5,1,10,"Enable res timer","Shows a timer for battlefield resser",1)
+function lib:AddRange(...) return self:AddSlider(...) end
 function lib:AddSlider(flag,defaultvalue,min,max,name,description,step)
 	description=description or name
 	min=min or 0
@@ -986,7 +1058,7 @@ function lib:AddSlider(flag,defaultvalue,min,max,name,description,step)
 		isPercent=step
 		step=nil
 	else
-		step=tonumber(step)
+		step=tonumber(step) or 1
 	end
 	local t={
 		name=name,
@@ -1086,7 +1158,7 @@ function lib:AddOpenCmd(command,method,description,arguments,private)
 	description=description or command
 	local group=getgroup(self)
 	if (not private) then
-		local command=C('/' .. self.ID .. ' ' .. command .. " (" .. description .. ")" ,'orange')
+		local command=C('/' .. lib.options[self].ID .. ' ' .. command .. " (" .. description .. ")" ,'orange')
 		local t={
 			name=command,
 			type="description",
@@ -1247,7 +1319,7 @@ function lib:Notify(...)
 end
 function lib:Debug()
 	self.DebugOn=not self.DebugOn
-	pp(self.name,"debug:",self.DebugOn and "On" or "Off")
+	self:Print("Debug:",self.DebugOn and on or off)
 	if self.DebugOn then
 		self.Dprint=dprint
 	else
@@ -1294,9 +1366,7 @@ end
 function lib:GetString(flag,default)
 	return tostring(self:GetSet(flag) or default or '')
 end
-local CLOSE=_G.FONT_COLOR_CODE_CLOSE or '|r'
-local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. 'Off' ..  CLOSE
-local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. 'On' ..  CLOSE
+
 function lib:PrintBoolean(flag)
 	if (type(flag) == "string") then
 		flag=self:GetBoolean(flag)
@@ -1321,6 +1391,10 @@ end
 function lib:SetVar(flag,value)
 	return self:GetSet(flag,value)
 end
+--- Simulates a configuration  variable change.
+--
+-- Generates Apply* events if needed
+-- @param string flag Variable name
 function lib:Trigger(flag)
 	local info=self:GetVarInfo(flag)
 	if (info) then
@@ -1384,6 +1458,7 @@ function lib:Help(info)
 		self:Print("No GUI available")
 	end
 end
+--[[
 function lib:IsEventScheduled(flag)
 	lib.timerhandles=lib.timerhandles or {}
 	return lib.timerhandles[flag]
@@ -1412,6 +1487,7 @@ function lib:_Trace(skip,...)
 		format(" in %s:%s%s",C(file,'azure'),C(line,'red'),C(func,'orange'))
 	)
 end
+--]]
 function lib:Long(msg) C:OnScreen('Yellow',msg,20) end
 function lib:Onscreen_Orange(msg) C:OnScreen('Orange',msg,2) end
 function lib:Onscreen_Purple(msg) C:OnScreen('Purple',msg,8) end
@@ -1453,7 +1529,7 @@ end
 function lib:Embed(target)
 	-- Standard libins
 	for name,method in pairs(lib) do
-			if (name~="NewAddon" and name~="GetAddon" and name:sub(1,1)~="_") then
+			if type(method)=="function" and name~="NewAddon" and name~="GetAddon" and name:sub(1,1)~="_" then
 				target[name] = method
 			end
 	end
@@ -1462,6 +1538,18 @@ function lib:Embed(target)
 	setmetatable(target._Apply,varmeta)
 	target.registry=target.registry or {}
 	lib.mixinTargets[target] = true
+	local addon=lib.addon
+	if type(addon[self])=="string" then
+		addon[self]={
+			name=self.name,
+			version=self.version,
+			revision=self.revision,
+			title=self.title,
+			notes=self.notes,
+			ID=self.ID,
+			DATABASE=self.DATABASE
+		}
+	end
 end
 
 local function kpairs(t,f)
@@ -1812,7 +1900,7 @@ do
 		local name=tostring(GetTime()*1000) ..nonce
 		nonce=nonce+1
 		dd.dropdown=CreateFrame('Frame',name,father,"UIDropDownMenuTemplate")
-		UIDropDownMenu_Initialize(frame, function(...)
+		UIDropDownMenu_Initialize(dd, function(...)
 			local i=0
 			for k,v in pairs(dd.list) do
 				i=i+1
@@ -1825,10 +1913,10 @@ do
 				UIDropDownMenu_AddButton(info,1)
 			end
 		end)
-		UIDropDownMenu_SetWidth(frame, 100);
-		UIDropDownMenu_SetButtonWidth(frame, 124)
-		UIDropDownMenu_SetSelectedID(frame, 1)
-		UIDropDownMenu_JustifyText(frame, "LEFT")
+		UIDropDownMenu_SetWidth(dd, 100);
+		UIDropDownMenu_SetButtonWidth(dd, 124)
+		UIDropDownMenu_SetSelectedID(dd, 1)
+		UIDropDownMenu_JustifyText(dd, "LEFT")
 		end
 	end
 end
