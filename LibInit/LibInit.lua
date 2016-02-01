@@ -1,26 +1,13 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- MUST BE LINE 1
---- **LibInit** should make using Ace3 even more easier and pleasant
--- LibInit pulls Ace 3 for you if you use the curse packager and set it this way:
---
--- Inside your .pkgmeta
--- externals:
--- 		libs/LibInit:
---			url: git://git.curseforge.net/wow/libinit/mainline.git/Libs/LibInit
---
--- Inside your toc
--- libs/LibInit/LibInit.xml
---
--- @usage
--- me,ns=...
--- local myAddon=LibStub("LibInit):NewAddon(me,true) to pull all Ace3 embeddable
--- local myAddon=LibStub("LibInit):NewAddon(me,"AceHook-3.0","Someotherembeddablelibrary",...) to specify your needede embed
--- local myAddon=LibStub("LibInit):NewAddon(me,true,"Someotherembeddablelibrary",...) to pull all Ace3 embeddable and adding more libraries
--- @class file
+--- **LibInit** should make using Ace3 even more easier and pleasant.
+-- An embeddable library which offer clean methods to build a configuration table
+-- instead of directly fiddling wit an Ace options table
 -- @name LibInit
+-- @class module
 --
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):7:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 20
+local MINOR_VERSION = 21
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -151,26 +138,26 @@ do
 --		return n
 --	end
 end
---- This storage must survive a library update
 lib.mixinTargets=lib.mixinTargets or {}
 lib.combatSchedules = lib.combatSchedules or {}
 lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
-lib.debugs=lib.debugs or {}
 lib.toggles=lib.toggles or {}
 lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
 lib.options=lib.options or {}
 --- Create a new AceAddon-3.0 addon.
--- Any libraryyou specified will be embeded, and the addon will be scheduled for
+-- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
 -- The final addon object, with all libraries embeded, will be returned.
--- @param object Table to use as a base for the addon (optional)
--- @param name Name of the addon object to create
--- @param lib List of libraries to embed into the addon
--- @param options options list
+-- @tparam[opt] table Table to use as a base for the addon (optional)
+-- @tparam string name Name of the addon object to create
+-- @tparam[opt] table options options list
+-- @tparam[opt] bool full If true, all available and embeddable Ace3 library are embedded
+-- @tparam[opt] string ... List of libraries to embed into the addon
+-- @treturn table new addon
 --
 -- @usage
--- Create a simple addon object
+-- --Create a simple addon object
 -- MyAddon = LibStub("LibInit"):NewAddon("MyAddon", "AceEvent-3.0")
 --
 -- -- Create a Addon object based on the table of a frame
@@ -208,7 +195,9 @@ function lib:NewAddon(target,...)
 	for i,_ in pairs(appo) do
 		tinsert(mixins,i)
 	end
-	print(unpack(mixins))
+	--@debug@
+	dprint(unpack(mixins))
+	--@end-debug@
 	local target=Ace:NewAddon(target,name,unpack(mixins))
 	del(mixins)
 	appo=nil
@@ -259,6 +248,7 @@ function lib:NewAddon(target,...)
 	return target
 end
 -- Combat scheduler done with LibCallbackHandler
+--- @todo Remove old scheduler
 local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 if not lib.CombatScheduler then
 	lib.CombatScheduler = CallbackHandler:New(lib,"_OnLeaveCombat","_CancelCombatAction")
@@ -275,6 +265,11 @@ if not lib.CombatScheduler then
 end
 local tremove=tremove
 local function Run(args) tremove(args,1)(unpack(args)) end
+--- Executes an action as soon as combat restrictions lift
+-- Action can be executed immediately if toon is out of combat
+-- @tparam string|function action To be executed, Can be a function or a method name
+-- @tparam[opt] mixed ... More parameters will be directly passed to action
+--
 function lib:OnLeaveCombat(action,...)
 	if type(action)~="string" and type(action)~="function" then
 		error("Usage: OnLeaveCombat (\"action\", ...): 'action' - string or function expected.", 2)
@@ -1749,6 +1744,15 @@ local function StopSpellCastingCleanup(this)
 end
 local StaticPopupDialogs=StaticPopupDialogs
 local StaticPopup_Show=StaticPopup_Show
+--- Show a popup
+-- Display a popup message with Accept and optionally Cance button
+-- @tparam string msg Message to be shown
+-- @tparam[opt] number timeout In seconds, if omitted assumes 60
+-- @tparam[opt] func OnAccept Executed when clicked on Accept
+-- @tparam[opt] func OnCancel Executed when clicked on Cancel (if nill, Cancel button is not shown)
+-- @tparam[opt] mixed data Passed to the callbacl function
+-- @tparam[opt] bool StopCasting If true, when the popup appear will stop any running casting.
+-- Useful to ask confirmation before performing a programmatic initiated spellcasting
 function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	if InCombatLockdown() then
 		return self:ScheduleLeaveCombatAction("Popup",msg,timeout,OnAccept,OnCancel,data,StopCasting)
@@ -1763,7 +1767,6 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	StaticPopupDialogs["LIBINIT_POPUP"] = StaticPopupDialogs["LIBINIT_POPUP"] or
 	{
 	text = msg,
-	button1 = ACCEPT,
 	showAlert = true,
 	timeout = timeout or 60,
 	exclusive = true,
@@ -1781,12 +1784,15 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	popup.text=msg
 	popup.OnCancel=nil
 	popup.OnAccept=OnAccept
+	popup.button1=ACCEPT
 	popup.button2=nil
 	if (OnCancel) then
 		if (type(OnCancel)=="function") then
 			popup.OnCancel=OnCancel
 		end
 		popup.button2 = CANCEL
+	else
+		popup.button1=OK
 	end
 	StaticPopup_Show("LIBINIT_POPUP",nil,nil,data);
 end
