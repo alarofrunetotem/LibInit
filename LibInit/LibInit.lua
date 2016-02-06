@@ -7,7 +7,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):7:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 21
+local MINOR_VERSION = 22
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -661,6 +661,7 @@ function lib:OnInitialize(...)
 --@debug@
 	dprint("OnInitialize",...)
 --@end-debug@
+
 	self.numericversion=self:NumericVersion() -- Initialized now becaus NumericVersion could be overrided
 	--CachedGetItemInfo=self:GetCachingGetItemInfo()
 	loadOptionsTable(self)
@@ -668,10 +669,9 @@ function lib:OnInitialize(...)
 	self:SetOptionsTable(self.OptionsTable)
 	self:SetDbDefaults(self.DbDefaults) -- hook
 	local options=lib.options[self]
---			if 	key=="profile"
---				or key=="noswitch"
---				or key=="nogui"
---				or key=="nohelp"
+	self.version=self.version or options.version
+	self.prettyversion=self.prettyversion or options.prettyversion
+	self.revision=self.revision or options.revision
 	if (AceDB and not self.db) then
 		self.db=AceDB:New(options.DATABASE,nil,options.profile)
 	end
