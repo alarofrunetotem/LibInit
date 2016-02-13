@@ -7,7 +7,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):7:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 22
+local MINOR_VERSION = 23
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -1792,7 +1792,7 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 		end
 		popup.button2 = CANCEL
 	else
-		popup.button1=OK
+		popup.button1=OKAY
 	end
 	StaticPopup_Show("LIBINIT_POPUP",nil,nil,data);
 end
