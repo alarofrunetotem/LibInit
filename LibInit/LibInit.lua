@@ -7,7 +7,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):7:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 23
+local MINOR_VERSION = 24
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -427,11 +427,11 @@ end
 -- Scans Bags for an item based on different criteria
 --
 -- All parameters are optional.
--- With no params ScanBags returns the first empty slot
+-- With no parameters ScanBags returns the first empty slot
 --
 -- @param index is index in GetItemInfo result. 0 is a special case to match just itemid
 -- @param value is the value against to match. 0 is a special case for empty slot
--- @param startbag and starslot are used to restart scan from the last item found
+-- @param startbag and startslot are used to restart scan from the last item found
 -- @param startslot
 -- @return Found ItemId,bag,slot,full GetItemInfo result
 function lib:ScanBags(index,value,startbag,startslot)
@@ -453,12 +453,15 @@ function lib:ScanBags(index,value,startbag,startslot)
 						return itemlink,bag,slot
 					end
 				end
+			elseif value==0 then
+				return bag,slot
+
 			end
 		end
 	end
 	return false
 end
---- Returns unit's heatl as a normalized percentual value
+--- Returns unit's health as a normalized percent value
 -- @param #string unit A standard unit name
 -- @return #number health as percent value
 
