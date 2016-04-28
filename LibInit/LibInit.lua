@@ -3,11 +3,13 @@
 -- instead of directly fiddling wit an Ace options table
 -- @name LibInit
 -- @class module
+-- @author Alar of Daggerspine
+-- @release 24
 --
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):7:")) -- Always check line number in regexp and file
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 24
+local MINOR_VERSION = 25
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -138,6 +140,7 @@ do
 --		return n
 --	end
 end
+-- Persistent tables
 lib.mixinTargets=lib.mixinTargets or {}
 lib.combatSchedules = lib.combatSchedules or {}
 lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
@@ -149,7 +152,7 @@ lib.options=lib.options or {}
 -- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
 -- The final addon object, with all libraries embeded, will be returned.
--- @tparam[opt] table Table to use as a base for the addon (optional)
+-- @tparam[opt] table target to use as a base for the addon (optional)
 -- @tparam string name Name of the addon object to create
 -- @tparam[opt] table options options list
 -- @tparam[opt] bool full If true, all available and embeddable Ace3 library are embedded
@@ -164,6 +167,7 @@ lib.options=lib.options or {}
 -- local MyFrame = CreateFrame("Frame")
 -- MyAddon = LibStub("LibInit"):NewAddon(MyFrame, "MyAddon", "AceEvent-3.0")
 function lib:NewAddon(target,...)
+	dprint("Initializing addon",target,...)
 	local name
 	local customOptions
 	local start=1
@@ -201,8 +205,7 @@ function lib:NewAddon(target,...)
 	local target=Ace:NewAddon(target,name,unpack(mixins))
 	del(mixins)
 	appo=nil
-	lib.options[target]={}
-	local options=lib.options[target]
+	local options={}
 	options.name=name
 	options.version=GetAddOnMetadata(name,'Version') or "Internal"
 	if (options.version:sub(1,1)=='@') then
@@ -231,13 +234,15 @@ function lib:NewAddon(target,...)
 				or key=="noswitch"
 				or key=="nogui"
 				or key=="nohelp"
+				or key=="enhancedprofile"
 					then
-				lib.options[key]=v
+				options[key]=v
 			else
 				error("Invalid options: " .. k)
 			end
 		end
 	end
+	lib.options[target]=options
 	RELNOTES=L["Release Notes"]
 	PROFILE=L["Profile"]
 	HELPSECTIONS={PROFILE,RELNOTES}
@@ -376,9 +381,9 @@ end
 
 local Myclass
 ---
--- Check if the unit in target hast the requested clas
--- @param #string class Requested Class
--- @param #string target Requested Unit (default 'player')
+-- Check if the unit in target hast the requested class
+-- @tparam #string class Requested Class
+-- @tparam #string target Requested Unit (default 'player')
 -- @return #boolean true if target has the requeste class
 function lib:Is(class,target)
 	target=target or "player"
@@ -399,8 +404,9 @@ end
 ---
 -- Parses a command from chat or from an table options handjer command
 -- Internally calls AceConsole-3.0:GetArgs
--- @param #mixed msg Can be a string (chat command) or a table (called by Ace3 Options Table Handler)
--- @return command,subcommand,arg,ffull string after command
+-- @tparam mixed msg Can be a string (chat command) or a table (called by Ace3 Options Table Handler)
+-- @tparam number n index in command list
+-- @return command,subcommand,arg,full string after command
 function lib:Parse(msg,n)
 	if (not msg) then
 		return nil
@@ -411,9 +417,8 @@ function lib:Parse(msg,n)
 end
 ---
 -- Parses an itemlink and returns itemId without calling API again
--- @param #Lib self
--- @param #string itemlink
--- @return #number itemId or 0
+-- @tparam string itemlink A sttandard wow itemlink
+-- @treturn number itemId or 0
 function lib:GetItemID(itemlink)
 	if (type(itemlink)=="string") then
 			local itemid,context=GetItemInfoFromHyperlink(itemlink)
@@ -429,10 +434,10 @@ end
 -- All parameters are optional.
 -- With no parameters ScanBags returns the first empty slot
 --
--- @param index is index in GetItemInfo result. 0 is a special case to match just itemid
--- @param value is the value against to match. 0 is a special case for empty slot
--- @param startbag and startslot are used to restart scan from the last item found
--- @param startslot
+-- @tparam[opt] number index is index in GetItemInfo result. 0 is a special case to match just itemid
+-- @tparam[opt] number value is the value against to match. 0 is a special case for empty slot
+-- @tparam[opt] number startbag and startslot are used to restart scan from the last item found
+-- @tparam[opt] number startslot
 -- @return Found ItemId,bag,slot,full GetItemInfo result
 function lib:ScanBags(index,value,startbag,startslot)
 	index=index or 0
@@ -462,8 +467,8 @@ function lib:ScanBags(index,value,startbag,startslot)
 	return false
 end
 --- Returns unit's health as a normalized percent value
--- @param #string unit A standard unit name
--- @return #number health as percent value
+-- @tparam string unit A standard unit name
+-- @treturn number health as percent value
 
 function lib:Health(unit)
 		local totale=UnitHealthMax(unit) or 1
@@ -660,6 +665,59 @@ end
 function lib:RegisterDatabase(dbname,defaults,profile)
 	return AceDB:New(dbname,defaults,profile)
 end
+local function SetCommonProfile(info,...)
+	local db=info.handler.db
+	for k,v in pairs(db.sv.profileKeys) do
+		db.sv.profileKeys[k]="Default"
+	end
+	db:SetProfile("Default")
+end
+local function PurgeProfiles(info,...)
+	local profiles=new()
+	local used=new()
+	local db=info.handler.db
+	db:GetProfiles(profiles)
+	for k,v in pairs(db.sv.profileKeys) do
+		used[v]=true
+	end
+	DevTools_Dump(profiles)
+	DevTools_Dump(used)
+	for _,v in ipairs(profiles) do
+		if not used[v] then
+			db:DeleteProfile(v)
+		end
+	end
+	del(used)
+	del(profiles)
+
+end
+local function SetupProfileSwitcher(tbl,addon)
+	tbl.args.UseDefault_Desc={
+		order=900,
+		type='description',
+		name="\n"..L['UseDefault_Desc']
+	}
+	tbl.args.UseDefault={
+		order=910,
+		type='execute',
+		func=SetCommonProfile,
+		name=L['UseDefault1'],
+		desc=L['UseDefault2']
+	}
+	tbl.args.Purge_Desc={
+		order=920,
+		type='description',
+		--name="forcedescname",
+		name="\n"..L['Purge_Desc']
+	}
+	tbl.args.Purge={
+		order=930,
+		type='execute',
+		func=PurgeProfiles,
+		name=L['Purge1'],
+		desc=L['Purge2']
+	}
+end
 function lib:OnInitialize(...)
 --@debug@
 	dprint("OnInitialize",...)
@@ -669,14 +727,16 @@ function lib:OnInitialize(...)
 	--CachedGetItemInfo=self:GetCachingGetItemInfo()
 	loadOptionsTable(self)
 	loadDbDefaults(self)
-	self:SetOptionsTable(self.OptionsTable)
+	self:SetOptionsTable(self.OptionsTable) --hook
 	self:SetDbDefaults(self.DbDefaults) -- hook
 	local options=lib.options[self]
+	DevTools_Dump(options)
 	self.version=self.version or options.version
 	self.prettyversion=self.prettyversion or options.prettyversion
 	self.revision=self.revision or options.revision
 	if (AceDB and not self.db) then
 		self.db=AceDB:New(options.DATABASE,nil,options.profile)
+		dprint(self.db:GetCurrentProfile())
 	end
 	if self.db then
 		self.db:RegisterDefaults(self.DbDefaults)
@@ -728,9 +788,12 @@ function lib:OnInitialize(...)
 		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
 		if (not ignoreProfile and not options.noswitch) then
 			if (AceDBOptions) then
-				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
+				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db,true)
 				titles.PROFILE=self.ProfileOpts.name
 				self.ProfileOpts.name=self.name
+				if options.enhancedprofile then
+					SetupProfileSwitcher(self.ProfileOpts,self)
+				end
 				local profile=main..PROFILE
 			end
 			AceConfig:RegisterOptionsTable(main .. PROFILE,self.ProfileOpts)
@@ -1392,7 +1455,7 @@ end
 --- Simulates a configuration  variable change.
 --
 -- Generates Apply* events if needed
--- @param string flag Variable name
+-- @tparam string flag Variable name
 function lib:Trigger(flag)
 	local info=self:GetVarInfo(flag)
 	if (info) then
@@ -1970,11 +2033,17 @@ local me=MAJOR_VERSION .. MINOR_VERSION
 -- This part will NOT be packaged at all
 do
 	local L=l:NewLocale(me,"enUS",true,true)
-	L["Configuration"] = true
-	L["Description"] = true
-	L["Libraries"] = true
-	L["Release Notes"] = true
-	L["Toggles"] = true
+	L["Configuration"] = "Configuration"
+	L["Description"] = "Description"
+	L["Libraries"] = "Libraries"
+	L["Purge1"] = "Delete unused profiles"
+	L["Purge2"] = "Deletes all profiles that are not used by a character"
+	L["Purge_Desc"] = "You can delete unused profiles"
+	L["Release Notes"] = "Release Notes"
+	L["Toggles"] = "Toggles"
+	L["UseDefault1"] = "Switch all characters to \"Default\""
+	L["UseDefault2"] = "Uses the \"Default\" profiles for all toon"
+	L["UseDefault_Desc"] = "You can force all your  characters to use the \"Default\" profiile in order to manage a single configuration"
 	L=l:NewLocale(me,"ptBR")
 	if (L) then
 	L["Configuration"] = "configura\195\167\195\163o"
