@@ -148,10 +148,18 @@ lib.toggles=lib.toggles or {}
 lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
 lib.options=lib.options or {}
+
 --- Create a new AceAddon-3.0 addon.
 -- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
 -- The final addon object, with all libraries embeded, will be returned.
+-- Options table format:
+-- 	*profile: choose the initial profile (if omittete, uses a per character one)
+--		*noswitch: disables Ace profile managemente, user will not be able to change it
+--		*nogui: do not generate a gui for configuration
+--		*nohelp: do not generate help (actually, help generation is not yet implemented)
+--		*enhancedprofile: adds "Switch all profiles to default" and "Remove unused profiles" do Ace profile gui
+--
 -- @tparam[opt] table target to use as a base for the addon (optional)
 -- @tparam string name Name of the addon object to create
 -- @tparam[opt] table options options list
@@ -166,6 +174,11 @@ lib.options=lib.options or {}
 -- -- Create a Addon object based on the table of a frame
 -- local MyFrame = CreateFrame("Frame")
 -- MyAddon = LibStub("LibInit"):NewAddon(MyFrame, "MyAddon", "AceEvent-3.0")
+-- -- Create an Addon based on the private table provided by Blizzard Code:
+-- local myname,addon = ...
+-- LibStub("LibInit"):NewAddon(addon,myname)
+--
+---
 function lib:NewAddon(target,...)
 	dprint("Initializing addon",target,...)
 	local name
@@ -692,30 +705,35 @@ local function PurgeProfiles(info,...)
 
 end
 local function SetupProfileSwitcher(tbl,addon)
+	local profiles=tbl.handler:ListProfiles({args="both"})
+	local default=profiles.Default or "Default"
+	wipe(profiles)
 	tbl.args.UseDefault_Desc={
 		order=900,
 		type='description',
-		name="\n"..L['UseDefault_Desc']
+		name="\n"..format(L['UseDefault_Desc'],default)
 	}
 	tbl.args.UseDefault={
 		order=910,
 		type='execute',
 		func=SetCommonProfile,
-		name=L['UseDefault1'],
-		desc=L['UseDefault2']
+		name=format(L['UseDefault1'],default),
+		desc=format(L['UseDefault2'],default),
+		width="double",
 	}
 	tbl.args.Purge_Desc={
 		order=920,
 		type='description',
 		--name="forcedescname",
-		name="\n"..L['Purge_Desc']
+		name="\n"..L['Purge_Desc'],
 	}
 	tbl.args.Purge={
 		order=930,
 		type='execute',
 		func=PurgeProfiles,
 		name=L['Purge1'],
-		desc=L['Purge2']
+		desc=L['Purge2'],
+		width="double",
 	}
 end
 function lib:OnInitialize(...)
@@ -730,7 +748,6 @@ function lib:OnInitialize(...)
 	self:SetOptionsTable(self.OptionsTable) --hook
 	self:SetDbDefaults(self.DbDefaults) -- hook
 	local options=lib.options[self]
-	DevTools_Dump(options)
 	self.version=self.version or options.version
 	self.prettyversion=self.prettyversion or options.prettyversion
 	self.revision=self.revision or options.revision
@@ -788,7 +805,7 @@ function lib:OnInitialize(...)
 		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
 		if (not ignoreProfile and not options.noswitch) then
 			if (AceDBOptions) then
-				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db,true)
+				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
 				titles.PROFILE=self.ProfileOpts.name
 				self.ProfileOpts.name=self.name
 				if options.enhancedprofile then
@@ -2038,12 +2055,12 @@ do
 	L["Libraries"] = "Libraries"
 	L["Purge1"] = "Delete unused profiles"
 	L["Purge2"] = "Deletes all profiles that are not used by a character"
-	L["Purge_Desc"] = "You can delete unused profiles"
+	L["Purge_Desc"] = "You can delete all unused profiles with just one click"
 	L["Release Notes"] = "Release Notes"
 	L["Toggles"] = "Toggles"
-	L["UseDefault1"] = "Switch all characters to \"Default\""
-	L["UseDefault2"] = "Uses the \"Default\" profiles for all toon"
-	L["UseDefault_Desc"] = "You can force all your  characters to use the \"Default\" profiile in order to manage a single configuration"
+	L["UseDefault1"] = "Switch all characters to \"%s\" profile"
+	L["UseDefault2"] = "Uses the \"%s\" profiles for all your toons"
+	L["UseDefault_Desc"] = "You can force all your characters to use the \"%s\" profile in order to manage a single configuration"
 	L=l:NewLocale(me,"ptBR")
 	if (L) then
 	L["Configuration"] = "configura\195\167\195\163o"
@@ -2121,8 +2138,14 @@ do
 	L["Configuration"] = "Configurazione"
 	L["Description"] = "Descrizione"
 	L["Libraries"] = "Librerie"
+	L["Purge1"] = "Cancella i profili inutilizzati"
+	L["Purge2"] = "Cancella tutti i profili che non sono usati da un personaggio"
+	L["Purge_Desc"] = "Puoi cancellare tutti i profili inutilizzati con un singolo click"
 	L["Release Notes"] = "Note di rilascio"
 	L["Toggles"] = "Interruttori"
+	L["UseDefault1"] = "Imposta il profilo \"%s\" su tutti i personaggi"
+	L["UseDefault2"] = "Usa il profilo '%s\" per tutti i personaggi"
+	L["UseDefault_Desc"] = "Puoi far usare a tutti i tuoi personaggi il profilo \"%s\""
 	end
 end
 L=LibStub("AceLocale-3.0"):GetLocale(me,true)
