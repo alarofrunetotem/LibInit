@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Daggerspine
--- @release 24
+-- @release 26
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 25
+local MINOR_VERSION = 26
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -104,19 +104,35 @@ local Ace=LibStub("AceAddon-3.0")
 local AceLocale=LibStub("AceLocale-3.0",true)
 local AceDB  = LibStub("AceDB-3.0",true)
 
+
+-- Persistent tables
+lib.mixinTargets=lib.mixinTargets or {}
+lib.combatSchedules = lib.combatSchedules or {}
+lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
+lib.toggles=lib.toggles or {}
+lib.addon=lib.addon or {}
+lib.chats=lib.chats or {}
+lib.options=lib.options or {}
+lib.pool=lib.pool or setmetatable({},{__mode="k"})
 -- Recycling function from ACE3
-----newcount, delcount,createdcount,cached = 0,0,0
-local new, del, copy
+local new, del, copy, cached, stats
 do
-	local pool = setmetatable({},{__mode="k"})
+	local pool = lib.pool
+--@debug@
+	local newcount, delcount,createdcount,cached = 0,0,0
+--@end-debug@
 	function new()
-		--newcount = newcount + 1
+--@debug@
+		newcount = newcount + 1
+--@end-debug@
 		local t = next(pool)
 		if t then
 			pool[t] = nil
 			return t
 		else
-			--createdcount = createdcount + 1
+--@debug@
+			createdcount = createdcount + 1
+--@end-debug@
 			return {}
 		end
 	end
@@ -128,27 +144,33 @@ do
 		return c
 	end
 	function del(t)
-		--delcount = delcount + 1
+--@debug@
+		delcount = delcount + 1
+--@end-debug@
 		wipe(t)
 		pool[t] = true
 	end
---	function cached()
---		local n = 0
---		for k in pairs(pool) do
---			n = n + 1
---		end
---		return n
---	end
+	function cached()
+		local n = 0
+		for k in pairs(pool) do
+			n = n + 1
+		end
+		return n
+	end
+--@debug@
+	function stats()
+		print("Created:",createdcount)
+		print("Aquired:",newcount)
+		print("Released:",delcount)
+		print("Cached:",cached())
+	end
+--@end-debug@
+--[===[@non-debug@
+	function stats()
+		return
+	end
+--@end-non-debug@]===]
 end
--- Persistent tables
-lib.mixinTargets=lib.mixinTargets or {}
-lib.combatSchedules = lib.combatSchedules or {}
-lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
-lib.toggles=lib.toggles or {}
-lib.addon=lib.addon or {}
-lib.chats=lib.chats or {}
-lib.options=lib.options or {}
-
 --- Create a new AceAddon-3.0 addon.
 -- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
@@ -158,7 +180,7 @@ lib.options=lib.options or {}
 --		*noswitch: disables Ace profile managemente, user will not be able to change it
 --		*nogui: do not generate a gui for configuration
 --		*nohelp: do not generate help (actually, help generation is not yet implemented)
---		*enhancedprofile: adds "Switch all profiles to default" and "Remove unused profiles" do Ace profile gui
+--		*enhancedProfile: adds "Switch all profiles to default" and "Remove unused profiles" do Ace profile gui
 --
 -- @tparam[opt] table target to use as a base for the addon (optional)
 -- @tparam string name Name of the addon object to create
@@ -243,6 +265,7 @@ function lib:NewAddon(target,...)
 	if customOptions then
 		for k,v in pairs(customOptions) do
 			local key=strlower(k)
+			if key=="enhnceprofile" then key = "enhancedprofile" end
 			if 	key=="profile"
 				or key=="noswitch"
 				or key=="nogui"
@@ -316,6 +339,18 @@ end
 function lib:NewSubClass(name)
 	return self:NewSubModule(name,self)
 	-- To avoid strange interactions
+end
+function lib:NewTable()
+	return new()
+end
+function lib:DelTable(t)
+	return del(t)
+end
+function lib:CachedTableCount()
+	return cached()
+end
+function lib:CacheStats()
+	return stats()
 end
 --- Returns a closure to call a method as simple local function
 --@usage local print=lib:Wrap("print")
