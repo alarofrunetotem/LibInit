@@ -465,7 +465,7 @@ function lib:Parse(msg,n)
 end
 ---
 -- Parses an itemlink and returns itemId without calling API again
--- @tparam string itemlink A sttandard wow itemlink
+-- @tparam string itemlink A standard wow itemlink
 -- @treturn number itemId or 0
 function lib:GetItemID(itemlink)
 	if (type(itemlink)=="string") then
@@ -728,8 +728,10 @@ local function PurgeProfiles(info,...)
 	for k,v in pairs(db.sv.profileKeys) do
 		used[v]=true
 	end
+--@debug@
 	DevTools_Dump(profiles)
 	DevTools_Dump(used)
+--@end-debug@
 	for _,v in ipairs(profiles) do
 		if not used[v] then
 			db:DeleteProfile(v)
