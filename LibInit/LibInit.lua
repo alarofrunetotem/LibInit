@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Daggerspine
--- @release 26
+-- @release 28
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 27
+local MINOR_VERSION = 28
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -842,7 +842,18 @@ function lib:OnInitialize(...)
 		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
 		if (not ignoreProfile and not options.noswitch) then
 			if (AceDBOptions) then
-				self.ProfileOpts=AceDBOptions:GetOptionsTable(self.db)
+				local profileOpts=AceDBOptions:GetOptionsTable(self.db)
+				self.ProfileOpts={} -- We dont want to propagate this change to all ace3 addons
+				for k,v in pairs(profileOpts) do
+					if k=='args' then
+						self.ProfileOpts.args={}
+						for k2,v2 in pairs(v) do
+							self.ProfileOpts.args[k2]=v2
+						end
+					else
+						self.ProfileOpts[k]=v
+					end
+				end
 				titles.PROFILE=self.ProfileOpts.name
 				self.ProfileOpts.name=self.name
 				if options.enhancedprofile then
