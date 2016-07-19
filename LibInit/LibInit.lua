@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Daggerspine
--- @release 28
+-- @release 29
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 28
+local MINOR_VERSION = 30
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -107,8 +107,6 @@ local AceDB  = LibStub("AceDB-3.0",true)
 
 -- Persistent tables
 lib.mixinTargets=lib.mixinTargets or {}
-lib.combatSchedules = lib.combatSchedules or {}
-lib.frame=lib.frame or CreateFrame("Frame") -- This frame is needed for scheduleleavecombat
 lib.toggles=lib.toggles or {}
 lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
@@ -202,7 +200,6 @@ end
 --
 ---
 function lib:NewAddon(target,...)
-	dprint("Initializing addon",target,...)
 	local name
 	local customOptions
 	local start=1
@@ -234,9 +231,6 @@ function lib:NewAddon(target,...)
 	for i,_ in pairs(appo) do
 		tinsert(mixins,i)
 	end
-	--@debug@
-	dprint(unpack(mixins))
-	--@end-debug@
 	local target=Ace:NewAddon(target,name,unpack(mixins))
 	del(mixins)
 	appo=nil
@@ -389,7 +383,6 @@ function lib:ColorGradient(perc, ...)
 	local r1, g1, b1, r2, g2, b2 = select((segment*3)+1, ...)
 	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
 end
-local combatSchedules = lib.combatSchedules
 -- Gestione variabili
 local varmeta={}
 do
@@ -774,10 +767,6 @@ local function SetupProfileSwitcher(tbl,addon)
 	}
 end
 function lib:OnInitialize(...)
---@debug@
-	dprint("OnInitialize",...)
---@end-debug@
-
 	self.numericversion=self:NumericVersion() -- Initialized now becaus NumericVersion could be overrided
 	--CachedGetItemInfo=self:GetCachingGetItemInfo()
 	loadOptionsTable(self)
@@ -837,7 +826,6 @@ function lib:OnInitialize(...)
 	local main=options.name
 	BuildHelp(self)
 	if AceConfig and not options.nogui then
-		dprint(main,self.OptionsTable,{main,strlower(options.ID)})
 		AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(options.ID)})
 		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
 		if (not ignoreProfile and not options.noswitch) then
@@ -1653,16 +1641,14 @@ end
 -- This function get called on addon creation
 -- Anything I define here is immediately available to addon code
 function lib:Embed(target)
-	-- Standard libins
-	for name,method in pairs(lib) do
-			if type(method)=="function" and name~="NewAddon" and name~="GetAddon" and name:sub(1,1)~="_" then
-				target[name] = method
-			end
-	end
+	-- All methods are pulled in via metatable in order to not pullete addon table
+	local mt=getmetatable(target)
+	if not mt then mt={__tostring=function(me) return me.name end} end
+	mt.__index=lib.mixins
+	setmetatable(target,mt)
 	target._Apply=target._Apply or {}
 	target._Apply._handler=target
 	setmetatable(target._Apply,varmeta)
-	target.registry=target.registry or {}
 	lib.mixinTargets[target] = true
 	local addon=lib.addon
 	if type(addon[self])=="string" then
@@ -1673,7 +1659,9 @@ function lib:Embed(target)
 			title=self.title,
 			notes=self.notes,
 			ID=self.ID,
-			DATABASE=self.DATABASE
+			DATABASE=self.DATABASE,
+			libMINOR=MINOR_VERSION,
+			libMAJOR=MAJOR_VERSION,
 		}
 	end
 end
@@ -1747,105 +1735,16 @@ function lib:GetSortedProxy(table)
 	return proxy
 end
 
--------------------------------------------------------------------------------
--- ScheduleLeaveCombatAction Port
--- Shamelessly stolen from Ace2
--------------------------------------------------------------------------------
-function lib:CancelAllCombatSchedules()
-	local i = 0
-	while true do
-		i = i + 1
-		if not combatSchedules[i] then
-			break
-		end
-		local v = combatSchedules[i]
-		if v.self == self then
-			v = del(v)
-			table.remove(combatSchedules, i)
-			i = i - 1
-		end
-	end
-end
-do
-	local tmp = {}
-	local doaftercombataction
-	function doaftercombataction()
-		for i, v in ipairs(combatSchedules) do
-			tmp[i] = v
-			combatSchedules[i] = nil
-		end
-		for i, v in ipairs(tmp) do
-			local func = v.func
-			if func then
-				local success, err = pcall(func, unpack(v, 1, v.n))
-				if not success then geterrorhandler()(err:find("%.lua:%d+:") and err or (debugstack():match("(.-: )in.-\n") or "") .. err) end
-			else
-				local obj = v.obj or v.self
-				local method = v.method
-				local obj_method = obj[method]
-				if obj_method then
-					local success, err = pcall(obj_method, obj, unpack(v, 1, v.n))
-					if not success then geterrorhandler()(err:find("%.lua:%d+:") and err or (debugstack():match("(.-: )in.-\n") or "") .. err) end
-				end
-			end
-			tmp[i] = del(v)
-		end
-	end
-	lib.frame:SetScript("OnEvent",nil)
-	lib.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-	lib.frame:SetScript("OnEvent",doaftercombataction)
-end
-
 function lib:ScheduleLeaveCombatAction(method, ...)
-	if true then return self:OnLeaveCombat(method,...) end
-	local style = type(method)
-	if style == "string" and type(self[method]) ~= "function" then
-		error("Cannot schedule a combat action to method %q, it does not exist", method)
-	elseif style == "table" then
-		local func = (...)
-		if type(method[func]) ~= "function" then
-			error("Cannot schedule a combat action to method %q, it does not exist", func)
-		end
-	end
-
-	if not InCombatLockdown() then
-		local success, err
-		if type(method) == "function" then
-			success, err = pcall(method, ...)
-		elseif type(method) == "table" then
-			local func = (...)
-			success, err = pcall(method[func], method, select(2, ...))
-		else
-			success, err = pcall(self[method], self, ...)
-		end
-		if not success then print(method,err) end
-		return
-	end
-	local t
-	local n = select('#', ...)
-	if style == "table" then
-		t = new(select(2, ...))
-		t.obj = method
-		t.method = (...)
-		t.n = n-1
-	else
-		t = new(...)
-		t.n = n
-		if style == "function" then
-			t.func = method
-		else
-			t.method = method
-		end
-	end
-	t.self = self
-	table.insert(combatSchedules, t)
+	return self:OnLeaveCombat(method,...)
 end
 function lib:coroutineExecute(interval,func)
 	local co=coroutine.wrap(func)
 	local interval=interval
 	local repeater
 	repeater=function()
-		if (co()) then
+		local rc,res=pcall(co)
+		if rc and res then
 			C_Timer.After(interval,repeater)
 		else
 			repeater=nil
@@ -1927,6 +1826,7 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	end
 	StaticPopup_Show("LIBINIT_POPUP",nil,nil,data);
 end
+-- Interface widgets
 local factory={} --#factory
 do
 	local nonce=0
@@ -2080,6 +1980,14 @@ function lib:SetCustomEnvironment(new_env)
 	setfenv(2, new_env)
 end
 --- reembed routine
+-- Prepares the mixins table
+lib.mixins=lib.mixins or {}
+wipe(lib.mixins)
+for name,method in pairs(lib) do
+	if type(method)=="function" and name~="NewAddon" and name~="GetAddon" and name:sub(1,1)~="_" then
+		lib.mixins[name] = method
+	end
+end
 for target,_ in pairs(lib.mixinTargets) do
 	lib:Embed(target)
 end
