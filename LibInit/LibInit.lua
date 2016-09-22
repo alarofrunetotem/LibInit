@@ -9,7 +9,7 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 31
+local MINOR_VERSION = 32
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -259,7 +259,7 @@ function lib:NewAddon(target,...)
 	if customOptions then
 		for k,v in pairs(customOptions) do
 			local key=strlower(k)
-			if key=="enhnceprofile" then key = "enhancedprofile" end
+			if key=="enhanceprofile" then key = "enhancedprofile" end
 			if 	key=="profile"
 				or key=="noswitch"
 				or key=="nogui"
@@ -876,9 +876,10 @@ end
 
 -- help related functions
 function lib:HF_Push(section,text)
-		section=section or self.lastsection or RELNOTES
-		self.lastsection=section
-		self.help[section]=self.help[section]  .. '\n' .. text
+	if section then section=titles[section] end
+	section=section or self.lastsection or RELNOTES
+	self.lastsection=section
+	self.help[section]=self.help[section]  .. '\n' .. text
 end
 local getlibs
 do
