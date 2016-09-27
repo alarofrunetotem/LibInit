@@ -14,6 +14,9 @@ local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED 
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
 local pp=print -- Keeping a handy plain print around
+local assert=assert
+local strconcat=strconcat
+local tostring=tostring
 local _G=_G -- Unmodified env
 local dprint=function() end
 --@debug@
@@ -112,6 +115,7 @@ lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
 lib.options=lib.options or {}
 lib.pool=lib.pool or setmetatable({},{__mode="k"})
+lib.coroutines=lib.coroutines or setmetatable({},{__index=function(t,k) rawset(t,k,{}) return t[k] end})
 -- Recycling function from ACE3
 local new, del, copy, cached, stats
 do
@@ -283,7 +287,6 @@ function lib:NewAddon(target,...)
 	return target
 end
 -- Combat scheduler done with LibCallbackHandler
---- @todo Remove old scheduler
 local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 if not lib.CombatScheduler then
 	lib.CombatScheduler = CallbackHandler:New(lib,"_OnLeaveCombat","_CancelCombatAction")
@@ -295,6 +298,12 @@ if not lib.CombatScheduler then
 		end
 		wipe(lib.CombatScheduler.events)
 		lib.CombatScheduler.recurse=0
+		for _,co in pairs(lib.coroutines) do
+			if co.waiting then
+				co.waiting=false
+				co.repeater()
+			end
+		end
 	end)
 	lib.CombatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 end
@@ -470,6 +479,15 @@ function lib:GetItemID(itemlink)
 	end
 end
 ---
+-- Return the toal numner of bag slots
+function lib:GetTotalBagSlots()
+	local i=0
+	for bag=0,NUM_BAG_SLOTS do
+		i=i+GetContainerNumSlots(bag)
+	end
+	return i
+end
+---
 -- Scans Bags for an item based on different criteria
 --
 -- All parameters are optional.
@@ -485,7 +503,7 @@ function lib:ScanBags(index,value,startbag,startslot)
 	value=value or 0
 	startbag=startbag or 0
 	startslot=startslot or 1
-	for bag=startbag,NUM_BAG_SLOTS,1 do
+	for bag=startbag,NUM_BAG_SLOTS do
 		for slot=startslot,GetContainerNumSlots(bag),1 do
 			local itemlink=GetContainerItemLink(bag,slot)
 			if (itemlink) then
@@ -1738,19 +1756,59 @@ end
 function lib:ScheduleLeaveCombatAction(method, ...)
 	return self:OnLeaveCombat(method,...)
 end
-function lib:coroutineExecute(interval,func)
-	local co=coroutine.wrap(func)
-	local interval=interval
-	local repeater
-	repeater=function()
-		local rc,res=pcall(co)
+
+--- Generates and executes a coroutine with configurable interval and combat status
+-- If called for already running coroutine changes the interval and the combat status
+-- @tparam number interval between steps
+-- @tparam string|function action To be executed, Can be a function or a method name
+-- @tparam[opt] bool
+--
+function lib:coroutineExecute(interval,func,safeForCombat)
+	if type(func)=="string" then
+		func=self[func]
+	end
+	assert(type(func) =="function","coroutineExecute arg1 was not convertible to a function " .. tostring(func))
+	local c=lib.coroutines[func]
+	c.combatSafe=safeForCombat
+	c.interval=interval
+	c.obj=self
+	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then pp("Already running",func) return end
+	c.co=coroutine.create(func)
+	c.paused=false
+	c.repeater=function()
+		if not c.combatSafe and InCombatLockdown() then
+			c.waiting=true
+			return
+		end
+		if c.paused then return end
+		local rc,res=pcall(coroutine.resume,c.co,c.obj)
 		if rc and res then
-			C_Timer.After(interval,repeater)
+			C_Timer.After(c.interval,c.repeater)
 		else
-			repeater=nil
+			c=nil
 		end
 	end
-	return repeater()
+	c.repeater()
+	return c
+end
+function lib:coroutinePause(func)
+	if type(func)=="string" then
+		func=self[func]
+	end
+	local co=rawget(lib.coroutines,func)
+	if co then
+		co.paused=true
+	end
+end
+function lib:coroutineRestart(func)
+	if type(func)=="string" then
+		func=self[func]
+	end
+	local co=rawget(lib.coroutines,func)
+	if co then
+		co.paused=false
+		pcall(co.repeater)
+	end
 end
 if not lib.secureframe then
 	lib.secureframe=CreateFrame("Button",nil,nil,"StaticPopupButtonTemplate,SecureActionButtonTemplate")
