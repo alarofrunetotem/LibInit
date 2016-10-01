@@ -333,6 +333,7 @@ end
 
 function lib:NewSubModule(name,...)
 	local obj=self:NewModule(name,...)
+	-- To avoid strange interactions
 	obj.OnInitialized=function()end -- placeholder
 	obj.OnInitialize=function(self,...) return  self:OnInitialized(...) end
 	obj.OnEnable=nil
@@ -341,7 +342,6 @@ function lib:NewSubModule(name,...)
 end
 function lib:NewSubClass(name)
 	return self:NewSubModule(name,self)
-	-- To avoid strange interactions
 end
 function lib:NewTable()
 	return new()
