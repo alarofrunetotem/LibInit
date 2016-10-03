@@ -1,5 +1,5 @@
 #!/bin/bash
-release=Release-r1134
+release=Release-r1151
 mkdir -p LibInit/Ace3
 libxml=LibInit/libs.xml
 echo '<?xml version="1.0" encoding="utf-8"?>' >$libxml
@@ -11,7 +11,7 @@ for module in LibStub CallbackHandler-1.0 AceAddon-3.0 AceGUI-3.0 AceConfig-3.0 
 	else
 		echo "<Include file=\"Ace3\\$module\\$module.xml\" />" >>$libxml
 	fi
-	#svn export --force svn://svn.wowace.com/wow/ace3/mainline/tags/$release/$module LibInit/Ace3/$module
+	svn export --force svn://svn.wowace.com/wow/ace3/mainline/tags/$release/$module LibInit/Ace3/$module
 done
 echo '</Ui>' >>$libxml
 
