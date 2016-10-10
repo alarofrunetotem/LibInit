@@ -1150,7 +1150,7 @@ function lib:AddToggle(flag,defaultvalue,name,description,icon)
 	lib.toggles[self][flag]=t
 	group.args[flag]=t
 	if (self.db.profile.toggles[flag]== nil) then
-			self.db.profile.toggles[flag]=defaultvalue
+		self.db.profile.toggles[flag]=defaultvalue
 	end
 	return t
 end
@@ -1173,12 +1173,23 @@ function lib:AddSelect(flag,defaultvalue,values,name,description)
 	}
 	group.args[flag]=t
 	if (self.db.profile.toggles[flag]== nil) then
-			self.db.profile.toggles[flag]=defaultvalue
+		self.db.profile.toggles[flag]=defaultvalue
 	end
 	lib.toggles[self][flag]=t
 	return t
 end
-
+function lib:AddMultiSelect(flag,defaultvalue,...)
+	local t=self:AddSelect(flag,defaultvalue,...)
+	t.type="multiselect"
+	if type(self.db.profile.toggles[flag])~="table" then
+		self.db.profile.toggles[flag]={}
+	end
+	if type(self.db.profile.toggles[flag]._default)=="nil" then
+		self.db.profile.toggles[flag]=defaultvalue
+		self.db.profile.toggles[flag]._default=true
+	end
+	return t
+end
 --self:AddSlider("RESTIMER",5,1,10,"Enable res timer","Shows a timer for battlefield resser",1)
 function lib:AddRange(...) return self:AddSlider(...) end
 function lib:AddSlider(flag,defaultvalue,min,max,name,description,step)
@@ -1536,12 +1547,14 @@ function lib:Trigger(flag)
 	end
 
 end
-function lib:OptToggleSet(info,value)
+function lib:OptToggleSet(info,value,extra)
 	local flag=info.option.arg
 	local tipo=info.option.type
 
 	if (tipo=="toggle") then
 		self:SetBoolean(flag,value)
+	elseif (tipo=="multiselect") then
+		self.db.profile.toggles[flag][value]=extra
 	else
 		self:GetSet(flag,value)
 	end
@@ -1549,11 +1562,18 @@ function lib:OptToggleSet(info,value)
 		self._Apply[flag](self,flag,value)
 	end
 end
-function lib:OptToggleGet(info)
+function lib:OptToggleGet(info,extra)
 	local flag=info.option.arg
 	local tipo=info.option.type
 	if (tipo=="toggle") then
 		return self:GetBoolean(flag)
+	elseif (tipo=="multiselect") then
+		pp(flag,extra)
+		DevTools_Dump(self.db.profile.toggles[flag])
+		if type(self.db.profile.toggles[flag])~="table" then
+			self.db.profile.toggles[flag]={}
+		end
+		return self.db.profile.toggles[flag][extra]
 	else
 		return self:GetSet(flag)
 	end
