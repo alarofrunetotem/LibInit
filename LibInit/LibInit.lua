@@ -1577,8 +1577,6 @@ function lib:OptToggleGet(info,extra)
 	if (tipo=="toggle") then
 		return self:GetBoolean(flag)
 	elseif (tipo=="multiselect") then
-		pp(flag,extra)
-		DevTools_Dump(self.db.profile.toggles[flag])
 		if type(self.db.profile.toggles[flag])~="table" then
 			self.db.profile.toggles[flag]={}
 		end
