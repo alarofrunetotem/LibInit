@@ -1529,6 +1529,15 @@ function lib:GetSet(...)
 		return self.db.profile.toggles[flag]
 	end
 end
+function lib:GetIndexedVar(flag,index)
+	local rc=GetVar(flag)
+	if index and type(rc)=="table" then
+		return rc[index]
+	else
+		return rc
+	end
+
+end
 function lib:GetVar(flag)
 	return self:GetSet(flag)
 end
