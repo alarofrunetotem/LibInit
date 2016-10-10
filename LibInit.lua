@@ -2,7 +2,6 @@
 -- This file intentionally blank for non internal release
 --@do-not-package@
 local core=LibStub("LibInit"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
-local print=print
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
 if LibDebug then
@@ -15,7 +14,7 @@ function core:OnInitialized()
 	self:AddLabel("LibInit Core Utils Loaded")
 	for major,_ in LibStub:IterateLibraries() do
 		local l,minor=LibStub:GetLibrary(major)
-		print(major,minor)
+		print("Loaded libraries",major,minor)
 	end
 end
 local lastframe
