@@ -1412,7 +1412,7 @@ end
 function lib:OnEnable(first,...)
 	if (self.OnEnabled) then
 		if (not self.db.global.silent) then
-			self:Print(C("enabled","green"))
+			self:Print(C(VIDEO_OPTIONS_ENABLED,"green"))
 		end
 		pcall(self.OnEnabled,self)
 	end
@@ -1420,7 +1420,7 @@ end
 function lib:OnDisable(...)
 	if (self.OnDisabled) then
 		if (not self.db.global.silent) then
-			self.print(C("disabled",'red'))
+			self.print(C(VIDEO_OPTIONS_DISABLED,'red'))
 		end
 		pcall(self.OnDisabled,self,...)
 	end
