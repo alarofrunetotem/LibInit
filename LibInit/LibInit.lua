@@ -111,7 +111,6 @@ local AceDB  = LibStub("AceDB-3.0",true)
 -- Persistent tables
 lib.mixinTargets=lib.mixinTargets or {}
 lib.toggles=lib.toggles or {}
-lib.addon=lib.addon or {}
 lib.chats=lib.chats or {}
 lib.options=lib.options or {}
 lib.pool=lib.pool or setmetatable({},{__mode="k"})
@@ -240,13 +239,15 @@ function lib:NewAddon(target,...)
 	appo=nil
 	local options={}
 	options.name=name
+	options.first=true
+	options.libstub=__FILE__
 	options.version=GetAddOnMetadata(name,'Version') or "Internal"
 	if (options.version:sub(1,1)=='@') then
 		options.version=GetAddOnMetadata(name,'X-Version') or "Internal"
 	end
 	local b,e=options.version:find(" ")
 	if b and b>1 then
-			options.version=options.version:sub(1,b-1)
+		options.version=options.version:sub(1,b-1)
 	end
 	options.revision=GetAddOnMetadata(name,'X-revision') or "Alpha"
 	if (options.revision:sub(1,1)=='@') then
@@ -258,7 +259,6 @@ function lib:NewAddon(target,...)
 	-- Setting sensible default for mandatory fields
 	options.ID=GetAddOnMetadata(name,"X-ID") or name
 	options.DATABASE=GetAddOnMetadata(name,"X-Database") or "db" .. options.ID
-	lib.addon[target]=name
 	lib.toggles[target]={}
 	if customOptions then
 		for k,v in pairs(customOptions) do
@@ -802,8 +802,11 @@ function lib:OnInitialize(...)
 	if self.db then
 		self.db:RegisterDefaults(self.DbDefaults)
 		if (not self.db.global.silent) then
-			self:Print(format("Version %s %s loaded",self:Colorize(options.version,'green'),self:Colorize(format("(Revision: %s)",options.revision),"silver")))
-			self:Print("You can disable this message with /" .. strlower(options.ID) .. " silent")
+			self:Print(format("Version %s %s loaded (%s)",
+				self:Colorize(options.version,'green'),
+				self:Colorize(format("(Revision: %s)",options.revision),"silver"),
+				"Disable message with /" .. strlower(options.ID) .. " silent")
+			)
 		end
 		self:SetEnabledState(self:GetBoolean("Active"))
 	else
@@ -1409,12 +1412,13 @@ function lib:OnEmbedDisable()
 end
 
 
-function lib:OnEnable(first,...)
+function lib:OnEnable()
 	if (self.OnEnabled) then
 		if (not self.db.global.silent) then
 			self:Print(C(VIDEO_OPTIONS_ENABLED,"green"))
 		end
-		pcall(self.OnEnabled,self)
+		pcall(self.OnEnabled,self,lib.options[self].first)
+		lib.options[self].first=nil
 	end
 end
 function lib:OnDisable(...)
@@ -1618,36 +1622,6 @@ function lib:Help(info)
 		self:Print("No GUI available")
 	end
 end
---[[
-function lib:IsEventScheduled(flag)
-	lib.timerhandles=lib.timerhandles or {}
-	return lib.timerhandles[flag]
-end
-function lib:ScheduleRepeatingEvent(flag,...)
-	lib.timerhandles=lib.timerhandles or {}
-	lib.timerhandles[flag]=self:ScheduleRepeatingTimer(...)
-end
-function lib:CancelScheduledEvent(flag)
-	lib.timerhandles=lib.timerhandles or {}
-	local h=lib.timerhandles[flag]
-	self:CancelTimer(h)
-end
-function lib:Trace(...)
-	lib._Trace(self,0,...)
-end
-function lib:_Trace(skip,...)
-	--pp(...)
-	local stack={strsplit("\n",debugstack(3,5,0))}
-	local info=stack[1 + skip or 0]
-	--pp(info)
-	--local file,line,func=info:match("(%s%.lua):(%d+) in function (.*)")
-	--pp(file,line,func)
-	local file,line,func=tostringall(strsplit(":",info))
-	pp(strjoin(" ",tostringall(...)),
-		format(" in %s:%s%s",C(file,'azure'),C(line,'red'),C(func,'orange'))
-	)
-end
---]]
 function lib:Long(msg) C:OnScreen('Yellow',msg,20) end
 function lib:Onscreen_Orange(msg) C:OnScreen('Orange',msg,2) end
 function lib:Onscreen_Purple(msg) C:OnScreen('Purple',msg,8) end
@@ -1687,29 +1661,18 @@ end
 -- This function get called on addon creation
 -- Anything I define here is immediately available to addon code
 function lib:Embed(target)
-	-- All methods are pulled in via metatable in order to not pullete addon table
+	-- All methods are pulled in via metatable in order to not pollute addon table
 	local mt=getmetatable(target)
 	if not mt then mt={__tostring=function(me) return me.name end} end
 	mt.__index=lib.mixins
 	setmetatable(target,mt)
 	target._Apply=target._Apply or {}
 	target._Apply._handler=target
+	for k,v in pairs(self) do
+		if type(v)=="string" or type(v)=="number" then pp (self,k,v) end
+	end
 	setmetatable(target._Apply,varmeta)
 	lib.mixinTargets[target] = true
-	local addon=lib.addon
-	if type(addon[self])=="string" then
-		addon[self]={
-			name=self.name,
-			version=self.version,
-			revision=self.revision,
-			title=self.title,
-			notes=self.notes,
-			ID=self.ID,
-			DATABASE=self.DATABASE,
-			libMINOR=MINOR_VERSION,
-			libMAJOR=MAJOR_VERSION,
-		}
-	end
 end
 
 local function kpairs(t,f)
@@ -1799,7 +1762,7 @@ function lib:coroutineExecute(interval,func,safeForCombat)
 	c.combatSafe=safeForCombat
 	c.interval=interval
 	c.obj=self
-	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then pp("Already running",func) return end
+	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then print("Already running",func) return end
 	c.co=coroutine.create(func)
 	c.paused=false
 	c.repeater=function()
