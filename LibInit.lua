@@ -11,11 +11,11 @@ else
 end
 function core:OnInitialized()
 	self:RegisterChatCommand("mark","Mark")
-	self:AddLabel("LibInit Core Utils Loaded")
-	for major,_ in LibStub:IterateLibraries() do
-		local l,minor=LibStub:GetLibrary(major)
-		print("Loaded libraries",major,minor)
-	end
+	--self:AddLabel("LibInit Core Utils Loaded")
+	--for major,_ in LibStub:IterateLibraries() do
+	--	local l,minor=LibStub:GetLibrary(major)
+	--	print("Loaded libraries",major,minor)
+	--end
 end
 local lastframe
 function core:Mark(args,chatFrame)
