@@ -3,13 +3,13 @@
 -- instead of directly fiddling wit an Ace options table
 -- @name LibInit
 -- @class module
--- @author Alar of Daggerspine
--- @release 31
+-- @author Alar of Runetotem
+-- @release 34
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 33
+local MINOR_VERSION = 34
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -256,6 +256,7 @@ function lib:NewAddon(target,...)
 	options.prettyversion=format("%s (Revision: %s)",tostringall(options.version,options.revision))
 	options.title=GetAddOnMetadata(name,"title") or 'No title'
 	options.notes=GetAddOnMetadata(name,"notes") or 'No notes'
+	options.libinit=MAJOR_VERSION .. ' ' .. MINOR_VERSION
 	-- Setting sensible default for mandatory fields
 	options.ID=GetAddOnMetadata(name,"X-ID") or name
 	options.DATABASE=GetAddOnMetadata(name,"X-Database") or "db" .. options.ID
@@ -1659,7 +1660,7 @@ function lib:GetColorTable()
 end
 -- In case of upgrade, we need to redo embed for ALL Addons
 -- This function get called on addon creation
--- Anything I define here is immediately available to addon code
+-- Anything I define here is immediately available to newAddon method and in addon right after creation
 function lib:Embed(target)
 	-- All methods are pulled in via metatable in order to not pollute addon table
 	local mt=getmetatable(target)
@@ -1673,6 +1674,9 @@ function lib:Embed(target)
 	end
 	setmetatable(target._Apply,varmeta)
 	lib.mixinTargets[target] = true
+	if type(lib.options[target])=="table" then -- Updating library version if needed
+		lib.options[target].libinit=MAJOR_VERSION .. ' ' .. MINOR_VERSION
+	end
 end
 
 local function kpairs(t,f)
