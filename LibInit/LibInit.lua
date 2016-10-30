@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Runetotem
--- @release 34
+-- @release 35
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 34
+local MINOR_VERSION = 35
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -433,9 +433,9 @@ end
 local Myclass
 ---
 -- Check if the unit in target hast the requested class
--- @tparam #string class Requested Class
--- @tparam #string target Requested Unit (default 'player')
--- @return #boolean true if target has the requeste class
+-- @tparam string class Requested Class
+-- @tparam string target Requested Unit (default 'player')
+-- @return boolean true if target has the requeste class
 function lib:Is(class,target)
 	target=target or "player"
 	if (target == "player") then
@@ -1678,9 +1678,18 @@ function lib:Embed(target)
 		lib.options[target].libinit=MAJOR_VERSION .. ' ' .. MINOR_VERSION
 	end
 end
-
+local function fsort(a,b)
+	if type(a)=="number" then
+		a=format("%07d",a)
+	end
+	if type(b)=="number" then
+		b=format("%07d",b)
+	end
+	return b>a
+end
 local function kpairs(t,f)
 	local a = new()
+	f=f or fsort
 	for n in pairs(t) do table.insert(a, n) end
 	table.sort(a, f)
 	local i = 0      -- iterator variable
