@@ -2181,9 +2181,8 @@ end
 -- To avoid clash between versions, localization is versioned on major and minor
 -- Lua strings are immutable so having more copies of the same string does not waist a noticeable slice of memory
 local me=MAJOR_VERSION .. MINOR_VERSION
---@do-not-package@
 -- Actual translations for test purpose
--- This part will NOT be packaged at all
+
 do
 	local L=l:NewLocale(me,"enUS",true,true)
 	L["Configuration"] = "Configuration"
@@ -2282,53 +2281,6 @@ do
 	L["UseDefault1"] = "Imposta il profilo \"%s\" su tutti i personaggi"
 	L["UseDefault2"] = "Usa il profilo '%s\" per tutti i personaggi"
 	L["UseDefault_Desc"] = "Puoi far usare a tutti i tuoi personaggi il profilo \"%s\""
-	end
-end
-L=LibStub("AceLocale-3.0"):GetLocale(me,true)
-if true then return end
---@end-do-not-package@
-do
-	local L=l:NewLocale(me,"enUS",true,true)
-	--@localization(locale="enUS", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	L=l:NewLocale(me,"ptBR")
-	if (L) then
-	--@localization(locale="ptBR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"frFR")
-	if (L) then
-	--@localization(locale="frFR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"deDE")
-	if (L) then
-	--@localization(locale="deDE", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"itIT")
-	if (L) then
-	--@localization(locale="itIT", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"koKR")
-	if (L) then
-	--@localization(locale="koKR", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"esMX")
-	if (L) then
-	--@localization(locale="esMX", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"ruRU")
-	if (L) then
-	--@localization(locale="ruRU", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"zhCN")
-	if (L) then
-	--@localization(locale="zhCN", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"esES")
-	if (L) then
-	--@localization(locale="esES", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
-	end
-	L=l:NewLocale(me,"zhTW")
-	if (L) then
-	--@localization(locale="zhTW", format="lua_additive_table" , escape-non-ascii=true, same-key-is-true=true, handle-unlocalized="blank" )@
 	end
 end
 L=LibStub("AceLocale-3.0"):GetLocale(me,true)

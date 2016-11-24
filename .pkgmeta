@@ -5,3 +5,4 @@ ignore:
 - luac.out
 - doc.txt
 - ace.sh
+- localization.lua
