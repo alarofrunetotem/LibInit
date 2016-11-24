@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Runetotem
--- @release 35
+-- @release 36
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 35
+local MINOR_VERSION = 36
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -52,6 +52,7 @@ end
 local lib=obj --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
+local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 -- Upvalues
 local _G=_G
 local floor=floor
@@ -114,9 +115,8 @@ lib.toggles=lib.toggles or {}
 lib.chats=lib.chats or {}
 lib.options=lib.options or {}
 lib.pool=lib.pool or setmetatable({},{__mode="k"})
-lib.coroutines=lib.coroutines or setmetatable({},{__index=function(t,k) rawset(t,k,{}) return t[k] end})
 -- Recycling function from ACE3
-local new, del, copy, cached, stats
+local new, del, recursivedel,copy, cached, stats
 do
 	local pool = lib.pool
 --@debug@
@@ -151,6 +151,18 @@ do
 		wipe(t)
 		pool[t] = true
 	end
+	function recursivedel(t)
+--@debug@
+		delcount = delcount + 1
+--@end-debug@
+		for k,v in pairs(t) do
+			if type(v)=="table" then
+				recursivedel(v)
+			end
+		end
+		wipe(t)
+		pool[t] = true
+	end
 	function cached()
 		local n = 0
 		for k in pairs(pool) do
@@ -172,7 +184,37 @@ do
 	end
 --@end-non-debug@]===]
 end
---- Create a new AceAddon-3.0 addon.
+function lib.NewTable()
+	return new()
+end
+---
+-- Must support both calling style
+function lib.DelTable(...)
+	local n=select('#',...)
+	local tbl,recursive
+	if n==3 then
+		tbl,recursive=select(2,...)
+	else
+		tbl,recursive=...
+	end
+	if type(recursive)=="table" then
+		tbl,recursive=recursive,nil
+	end
+	if n==0 then
+		error("Usage: DelTable(table[,recursive]")
+	end
+	if lib.options[tbl] then
+		error("Called as :DelTable without arguments")
+	end		
+	assert(type(tbl)=="table","Usage: DelTable(table)")
+	return recursive and recursivedel(tbl) or del(tbl)
+end
+function lib:CachedTableCount()
+	return cached()
+end
+function lib:CacheStats()
+	return stats()
+end--- Create a new AceAddon-3.0 addon.
 -- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
 -- The final addon object, with all libraries embeded, will be returned.
@@ -344,18 +386,7 @@ end
 function lib:NewSubClass(name)
 	return self:NewSubModule(name,self)
 end
-function lib:NewTable()
-	return new()
-end
-function lib:DelTable(t)
-	return del(t)
-end
-function lib:CachedTableCount()
-	return cached()
-end
-function lib:CacheStats()
-	return stats()
-end
+
 --- Returns a closure to call a method as simple local function
 --@usage local print=lib:Wrap("print")
 function lib:Wrap(nome)
@@ -1562,9 +1593,9 @@ function lib:Trigger(flag)
 
 end
 function lib:OptToggleSet(info,value,extra)
-	local flag=info.option.arg
-	local tipo=info.option.type
-
+	return self:ToggleSet(info.option.arg,info.option.type,value,extra)
+end
+function lib:ToggleSet(flag,tipo,value,extra)
 	if (tipo=="toggle") then
 		self:SetBoolean(flag,value)
 	elseif (tipo=="multiselect") then
@@ -1577,8 +1608,9 @@ function lib:OptToggleSet(info,value,extra)
 	end
 end
 function lib:OptToggleGet(info,extra)
-	local flag=info.option.arg
-	local tipo=info.option.type
+	return self:ToggleGet(info.option.arg,info.option.type,extra)
+end
+function lib:ToggleGet(flag,tipo,extra)
 	if (tipo=="toggle") then
 		return self:GetBoolean(flag)
 	elseif (tipo=="multiselect") then
@@ -1706,12 +1738,10 @@ local function kpairs(t,f)
 	end
 	return iter
 end
-if (not _G.kpairs) then
-		_G.kpairs=kpairs
-end
-function lib:getKpairs()
+function lib:GetKpairs()
 	return kpairs
 end
+lib.getKpairs=lib.GetKpairs
 -- This metatable is used to generate a sorted proxy to an hashed table.
 -- It should not used directly
 lib.mt={__metatable=true,__version=MINOR_VERSION}
@@ -1760,54 +1790,93 @@ function lib:ScheduleLeaveCombatAction(method, ...)
 	return self:OnLeaveCombat(method,...)
 end
 
+lib.coroutines=lib.coroutines or setmetatable({},{__index=function(t,k) rawset(t,k,{}) return t[k] end})
+if not lib.CoroutineScheduler then
+	lib.CoroutineScheduler = CallbackHandler:New(lib,"_OnCoroutineEnd","_CancelOnCoroutine")
+end
+local coroutines=lib.coroutines
+
+--- Executes an action as soon as a coroutine exit
+-- Action can be executed immediately if coroutine is already dead
+-- @tparam string|function action To be executed, Can be a function or a method name
+-- @tparam[opt] mixed ... More parameters will be directly passed to action
+--
+function lib:coroutineOnEnd(signature,action,...)
+	if type(action)~="string" and type(action)~="function" then
+		error("Usage: OnCoroutineEnd (\"action\", ...): 'action' - string or function expected.", 2)
+	end
+	if type(action)=="string" and type(self[action]) ~= "function" then
+		error("Usage: OnCoroutineEnd (\"action\", ...): 'action' - method '"..tostring(action).."' not found on self.", 2)
+	end
+	if type(action) =="string" then
+		dprint("onend",self,signature,action,...)
+		lib._OnCoroutineEnd(self,signature,Run,{self[action],self,...})
+	else
+		lib._OnCoroutineEnd(self,signature,Run,{action,...})
+	end
+end
+
+
 --- Generates and executes a coroutine with configurable interval and combat status
 -- If called for already running coroutine changes the interval and the combat status
 -- @tparam number interval between steps
 -- @tparam string|function action To be executed, Can be a function or a method name
--- @tparam[opt] bool
---
-function lib:coroutineExecute(interval,func,safeForCombat)
+-- @tparam[opt] bool keep running in combat
+-- @tparam[opt] mixed more parameter are passed to function
+function lib:coroutineExecute(interval,func,combatSafe,...)
+	local signature=strjoin(':',tostringall(func,...))
 	if type(func)=="string" then
 		func=self[func]
 	end
 	assert(type(func) =="function","coroutineExecute arg1 was not convertible to a function " .. tostring(func))
-	local c=lib.coroutines[func]
-	c.combatSafe=safeForCombat
+	local c=lib.coroutines[signature]
+	c.signature=signature
 	c.interval=interval
-	c.obj=self
-	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then print("Already running",func) return end
+	c.combatSafe=combatSafe
+	if c.running then
+	--@debug@
+		print("")
+	--@end-debug@ 
+		return 
+	end
+	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then return signature end
 	c.co=coroutine.create(func)
+	c.running=true
 	c.paused=false
-	c.repeater=function()
-		if not c.combatSafe and InCombatLockdown() then
-			c.waiting=true
-			return
-		end
-		if c.paused then return end
-		local rc,res=pcall(coroutine.resume,c.co,c.obj)
-		if rc and res then
-			C_Timer.After(c.interval,c.repeater)
-		else
-			c=nil
+	do 
+		local args={...}
+		local obj=obj
+		local c=c
+		c.repeater=function()
+			if not c.combatSafe and InCombatLockdown() then
+				c.waiting=true
+				return
+			end
+			if c.paused then return end
+			local rc,res=pcall(coroutine.resume,c.co,obj,unpack(args))
+			if rc and res then
+				C_Timer.After(c.interval,c.repeater)
+			else
+				lib.coroutines[signature]=nil
+				lib.CoroutineScheduler:Fire(c.signature)
+				if not rc then error(res,2) end
+			end
 		end
 	end
 	c.repeater()
-	return c
+	return signature
 end
-function lib:coroutinePause(func)
-	if type(func)=="string" then
-		func=self[func]
-	end
-	local co=rawget(lib.coroutines,func)
+function lib:coroutineGet(signature)
+	return coroutines[signature]
+end
+function lib:coroutinePause(signature)
+	local co=coroutines[signature]
 	if co then
 		co.paused=true
 	end
 end
-function lib:coroutineRestart(func)
-	if type(func)=="string" then
-		func=self[func]
-	end
-	local co=rawget(lib.coroutines,func)
+function lib:coroutineRestart(signature)
+	local co=coroutines[signature]
 	if co then
 		co.paused=false
 		pcall(co.repeater)
@@ -1892,6 +1961,18 @@ local factory={} --#factory
 do
 	local nonce=0
 	local GetTime=GetTime
+	local function GetUniqueName(type,father)
+		if father then 
+			local name=father:GetName()
+			if name then 
+				type=type..name 
+			else
+				type=type..father:GetObjectType()
+			end
+		end
+		nonce=nonce+1
+		return type .. tostring(GetTime()*1000) ..nonce
+	end
 	local function SetScript(this,...)
 		this.child:SetScript(...)
 	end
@@ -1905,14 +1986,13 @@ do
 			tooltip=message.desc
 			message=message.name
 		end
-		local name=tostring(GetTime()*1000) ..nonce
-		nonce=nonce+1
+		local name=GetUniqueName("slider",father)
 		local sl = CreateFrame('Slider',name, father, 'OptionsSliderTemplate')
 		sl:SetWidth(128)
 		sl:SetHeight(20)
 		sl:SetOrientation('HORIZONTAL')
 		sl:SetMinMaxValues(min, max)
-		sl:SetValue(current)
+		sl:SetValue(current or -1)
 		sl.SetStep=SetStep
 		sl.Low=_G[name ..'Low']
 		sl.Low:SetText(min)
@@ -1920,22 +2000,28 @@ do
 		sl.High:SetText(max)
 		sl.Text=_G[name.. 'Text']
 		sl.Text:SetText(message)
-		sl.OnValueChanged=function(this,value)
-			if (not this.unrounded) then
-				value = math.floor(value)
-			end
-			if (this.isPercent) then
-				this.Text:SetFormattedText('%d%%',value)
-			else
-				this.Text:SetText(value)
-			end
-			return value
-		end
+		sl.Value=sl:CreateFontString(name..'Value','ARTWORK','GameFontHighlightSmall')
+		sl.Value:SetPoint("TOP",sl,"BOTTOM")
+		sl.Value:SetJustifyH("CENTER")
 		sl.SetText=function(this,value) this.Text:SetText(value) end
 		sl.SetFormattedText=function(this,...) this.Text:SetFormattedText(...) end
 		sl.SetTextColor=function(this,...) this.Text:SetTextColor(...) end
-		sl:SetScript("OnValueChanged",sl.OnValueChanged)
 		sl.tooltipText=tooltip
+		function sl:OnValueChanged(value)
+			if (not self.unrounded) then
+				value = math.floor(value)
+			end
+			if (self.isPercent) then
+				self.Value:SetFormattedText('%d%%',value)
+			else
+				self.Value:SetText(value)
+			end
+			self:OnChange(value)
+		end
+		function sl:OnChange(value) end
+		function sl:SetOnChange(func) self.OnChange=func end
+		sl:SetScript("OnValueChanged",sl.OnValueChanged)
+		sl:OnValueChanged(current)
 		return sl
 	end
 	function factory:Checkbox(father,current,message,tooltip)
@@ -1943,28 +2029,38 @@ do
 			tooltip=message.desc
 			message=message.name
 		end
-		local name=tostring(GetTime()*1000) ..nonce
-		nonce=nonce+1
 		local frame=CreateFrame("Frame",nil,father)
+		local name=GetUniqueName("checkbox",father)
 		local ck=CreateFrame("CheckButton",name,frame,"ChatConfigCheckButtonTemplate")
+		ck.OnClick=function(this)
+			this.frame:OnChange(this:GetChecked())
+		end		
 		frame.SetScript=SetScript
 		frame.child=ck
+		ck.frame=frame
 		ck:SetPoint('TOPLEFT')
+		ck:SetScript("OnClick",ck.OnClick)
 		ck.Text=_G[name..'Text']
 		ck.Text:SetText(message)
 		ck:SetChecked(current)
 		ck.tooltip=tooltip
 		frame:SetWidth(ck:GetWidth()+ck.Text:GetWidth()+2)
 		frame:SetHeight(ck:GetHeight())
+		function frame:OnChange(value) end
+		function frame:SetOnChange(func) self.OnChange=func end
 		return frame
 	end
-	function factory:Dropdown(father,current,list,message,tooltip)
+--- Creates a dropdown menu
+-- @tparam frame father Parent frame to use
+-- @tparam mixed current Initial value
+-- @tparam array list Option list 
+	function factory:DropDown(father,current,list,message,tooltip)
 		if type(message)=="table" then
 			tooltip=message.desc
 			message=message.name
 		end
-		do
-		local dd=CreateFrame("Frame",nil,father)
+		local dd=CreateFrame("Frame",GetUniqueName("dropdown",father),father,"UIDropDownMenuTemplate")
+	   dd:SetBackdropColor(1,0,0,1)		
 		if (tooltip) then
 			dd.tooltip=tooltip
 			dd:SetScript("OnEnter",function(self)
@@ -1984,38 +2080,62 @@ do
 		function dd:SetTextColor(...)
 			self.text:SetTextColor(...)
 		end
-		function dd:OnChange() end
-		function dd:OnValueChanged(this,index,value)
-			value=value or index
-			UIDropDownMenu_SetSelectedID(dd,index)
-			return self:OnChange(value)
-		end
-		function dd:SetOnChange(func)
-			self.OnChange=func
-		end
 		dd.list=list
 		local name=tostring(GetTime()*1000) ..nonce
-		nonce=nonce+1
-		dd.dropdown=CreateFrame('Frame',name,father,"UIDropDownMenuTemplate")
+		--dd.dropdown=CreateFrame('Frame',name,father,"UIDropDownMenuTemplate")
 		UIDropDownMenu_Initialize(dd, function(...)
 			local i=0
 			for k,v in pairs(dd.list) do
 				i=i+1
 				local info=UIDropDownMenu_CreateInfo()
 				info.text=v
-				info.value=v
+				info.value=k
 				info.func=function(...) return dd:OnValueChanged(...) end
 				info.arg1=i
-				info.arg2=v
-				UIDropDownMenu_AddButton(info,1)
+				info.arg2=k
+				--info.notCheckable=true
+				UIDropDownMenu_AddButton(info)
 			end
 		end)
-		UIDropDownMenu_SetWidth(dd, 100);
-		UIDropDownMenu_SetButtonWidth(dd, 124)
-		UIDropDownMenu_SetSelectedID(dd, 1)
+		UIDropDownMenu_SetSelectedValue(dd, current)
 		UIDropDownMenu_JustifyText(dd, "LEFT")
+		function dd:OnValueChanged(this,index,value,...)
+			value=value or index
+			UIDropDownMenu_SetSelectedID(dd,index)
+			return self:OnChange(value)
 		end
+		function dd:OnChange(value) end
+		function dd:SetOnChange(func) self.OnChange=func end
+		return dd
 	end
+	-- These functions directly map to variables
+	local function ToggleSet(this,value)
+		this.obj:ToggleSet(this.flag,this.tipo,value)
+	end
+	function factory:Option(addon,father,flag)
+		if not addon or not addon.GetVarInfo or not father or not flag then
+			error("Usage factory:Option(addon,father,flag",2)
+		end
+		local info=addon:GetVarInfo(flag)
+		if not info then error("factory:Option() Not existent " ..flag,2) end
+		local f=father
+		local w
+		local tipo=info.type
+		if (tipo=="toggle") then
+			w=self:Checkbox(f,addon:ToggleGet(flag,tipo),info)
+		elseif( info.type=="select") then
+			w=self:DropDown(f,addon:ToggleGet(flag,tipo),info.values,info)			
+		elseif (info.type=="range") then
+			w=self:Slider(f,info.min,info.max,addon:ToggleGet(flag,info.type),info)
+		else
+		end
+		w:SetOnChange(ToggleSet)
+		w.flag=flag
+		w.tipo=tipo
+		w.obj=addon
+		return w		
+	end
+	factory.Dropdown=factory.DropDown -- compatibility
 end
 function lib:GetFactory()
 	return factory
