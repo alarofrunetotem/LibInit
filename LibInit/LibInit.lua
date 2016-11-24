@@ -20,14 +20,14 @@ local tostring=tostring
 local _G=_G -- Unmodified env
 local dprint=function() end
 --@debug@
-LoadAddOn("LibDebug")
-LoadAddOn("Blizzard_DebugTools")
-if LibDebug then
+--LoadAddOn("LibDebug")
+--LoadAddOn("Blizzard_DebugTools")
+--if LibDebug then
 	--pulling libdebug print in without pulling also the whole _G management and without changing loading addon env
-	LibDebug()
-	dprint=print
-	setfenv(1,_G)
-end
+--	LibDebug()
+--	dprint=print
+--	setfenv(1,_G)
+--end
 --@end-debug@
 --GAME_LOCALE="itIT"
 local me, ns = ...
@@ -686,7 +686,7 @@ local function loadOptionsTable(self)
 				type="execute",
 				func=function()
 					self.db.global.silent=not self.db.global.silent
-					print("Silent is now",self.db.global.silent,self.db.global.silent and "true" or "false" )
+					self:Print("Silent is now",self.db.global.silent and "true" or "false" )
 				end,
 				guiHidden=true,
 			},
