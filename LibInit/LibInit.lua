@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Runetotem
--- @release 36
+-- @release 37
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 36
+local MINOR_VERSION = 37
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -1824,7 +1824,7 @@ end
 -- @tparam[opt] bool keep running in combat
 -- @tparam[opt] mixed more parameter are passed to function
 function lib:coroutineExecute(interval,func,combatSafe,...)
-	local signature=strjoin(':',tostringall(func,...))
+	local signature=strjoin(':',tostringall(self,func,...))
 	if type(func)=="string" then
 		func=self[func]
 	end
