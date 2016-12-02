@@ -1890,7 +1890,7 @@ function lib:coroutineRestart(signature)
 	if c then
 		if c.paused then 
 			c.paused=false
-			local rc,res=pcall(co.repeater)
+			local rc,res=pcall(c.repeater)
 			if not rc then error(res,2) end
 		end
 	end
