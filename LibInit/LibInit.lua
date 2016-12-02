@@ -333,7 +333,6 @@ function lib:NewAddon(target,...)
 	return target
 end
 -- Combat scheduler done with LibCallbackHandler
-local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 if not lib.CombatScheduler then
 	lib.CombatScheduler = CallbackHandler:New(lib,"_OnLeaveCombat","_CancelCombatAction")
 	lib.CombatFrame=CreateFrame("Frame")
@@ -344,10 +343,10 @@ if not lib.CombatScheduler then
 		end
 		wipe(lib.CombatScheduler.events)
 		lib.CombatScheduler.recurse=0
-		for _,co in pairs(lib.coroutines) do
-			if co.waiting then
-				co.waiting=false
-				co.repeater()
+		for _,c in pairs(lib.coroutines) do
+			if c.waiting then
+				c.waiting=false
+				C_Timer.After(c.interval,c.repeater) -- to avoid hammering client with a shitload of corooutines starting together				
 			end
 		end
 	end)
