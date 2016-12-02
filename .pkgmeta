@@ -2,7 +2,7 @@ package-as: LibInit
 enable-nolib-creation: no
 
 externals:
-  Ace3/AceBucket-3.0
+  Ace3/AceBucket-3.0:
     url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceBucket-3.0
     tag: latest
 
