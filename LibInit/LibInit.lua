@@ -1802,7 +1802,8 @@ lib.coroutines=lib.coroutines or setmetatable({},{__index=function(t,k) rawset(t
 if not lib.CoroutineScheduler then
 	lib.CoroutineScheduler = CallbackHandler:New(lib,"_OnCoroutineEnd","_CancelOnCoroutine")
 end
-local coroutines=lib.coroutines
+---
+local coroutines=lib.coroutines --#Coroutines
 
 --- Executes an action as soon as a coroutine exit
 -- Action can be executed immediately if coroutine is already dead
