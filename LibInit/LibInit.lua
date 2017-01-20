@@ -4,12 +4,12 @@
 -- @name LibInit
 -- @class module
 -- @author Alar of Runetotem
--- @release 39
+-- @release 40
 --
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 39
+local MINOR_VERSION = 40
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. _G.VIDEO_OPTIONS_DISABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. _G.VIDEO_OPTIONS_ENABLED ..  _G.FONT_COLOR_CODE_CLOSE or '|r'
 local nop=function()end
@@ -1746,10 +1746,28 @@ local function kpairs(t,f)
 	end
 	return iter
 end
+
 function lib:GetKpairs()
 	return kpairs
 end
 lib.getKpairs=lib.GetKpairs
+local function empty(obj)
+	if not obj then return true end -- Simplest case, obj evaluates to false in boolean context
+	local t=type(obj)
+	if t=="number" then
+		return obj==0
+	elseif t=="bool" then
+		return true
+	elseif t=="string" then
+		return obj==''
+	elseif t=="table" then
+		return not next(obj)
+	end
+	return false -- Userdata and threads can never be empty
+end
+function lib:GetEmpty()
+	return empty
+end
 -- This metatable is used to generate a sorted proxy to an hashed table.
 -- It should not used directly
 lib.mt={__metatable=true,__version=MINOR_VERSION}
