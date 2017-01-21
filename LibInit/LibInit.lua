@@ -2190,7 +2190,7 @@ do
 	end
 	function factory:Option(addon,father,flag)
 		if not addon or not addon.GetVarInfo or not father or not flag then
-			error("Usage factory:Option(addon,father,flag",2)
+			return		
 		end
 		local info=addon:GetVarInfo(flag)
 		if not info then error("factory:Option() Not existent " ..flag,2) end
