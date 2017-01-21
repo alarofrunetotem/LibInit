@@ -1759,7 +1759,7 @@ local function empty(obj)
 	elseif t=="bool" then
 		return true
 	elseif t=="string" then
-		return obj==''
+		return obj=='' or obj==tostring(nil)
 	elseif t=="table" then
 		return not next(obj)
 	end
@@ -2043,6 +2043,7 @@ do
 		sl.High:SetText(max)
 		sl.Text=_G[name.. 'Text']
 		sl.Text:SetText(message)
+		sl.Text:SetFontObject(GameFontNormalSmall)
 		sl.Value=sl:CreateFontString(name..'Value','ARTWORK','GameFontHighlightSmall')
 		sl.Value:SetPoint("TOP",sl,"BOTTOM")
 		sl.Value:SetJustifyH("CENTER")
