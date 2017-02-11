@@ -1,2 +1,4 @@
 /.settings/
-LibInit/doc
+doc
+classes
+config.ld
