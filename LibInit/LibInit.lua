@@ -1,11 +1,14 @@
---- **LibInit** should make using Ace3 even more easier and pleasant.
--- An embeddable library which offer clean methods to build a configuration table
--- instead of directly fiddling wit an Ace options table
--- @name LibInit
--- @class module
+--- Main methods directly available in your addon
+-- @classmod self
 -- @author Alar of Runetotem
 -- @release 40
---
+-- @set sort=true
+-- @usage
+-- -- Create a new addon this way:
+-- local me,ns=... -- Wow engine passes you your addon name and a private table to use
+-- addon=LibStub("LibInit"):newAddon(ns,me)
+-- -- Since now, all LibInit methods are available on self
+
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):9:")) -- Always check line number in regexp and file
 
 local MAJOR_VERSION = "LibInit"
@@ -55,6 +58,7 @@ end
 local lib=obj --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
+local F=LibStub("LibInit-Factory")
 local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 -- Upvalues
 local _G=_G
@@ -119,6 +123,8 @@ lib.chats=lib.chats or {}
 lib.options=lib.options or {}
 lib.pool=lib.pool or setmetatable({},{__mode="k"})
 -- Recycling function from ACE3
+---
+--@section Recycle functions
 local new, del, recursivedel,copy, cached, stats
 do
 	local pool = lib.pool
@@ -219,15 +225,19 @@ function lib:CacheStats()
 	return stats()
 end
 --- Create a new AceAddon-3.0 addon.
+-- 
 -- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
+-- 
 -- The final addon object, with all libraries embeded, will be returned.
+-- 
 -- Options table format:
--- 	*profile: choose the initial profile (if omittete, uses a per character one)
---		*noswitch: disables Ace profile managemente, user will not be able to change it
---		*nogui: do not generate a gui for configuration
---		*nohelp: do not generate help (actually, help generation is not yet implemented)
---		*enhancedProfile: adds "Switch all profiles to default" and "Remove unused profiles" do Ace profile gui
+-- 
+-- * profile: choose the initial profile (if omittete, uses a per character one)
+--	 * noswitch: disables Ace profile managemente, user will not be able to change it
+--	 * nogui: do not generate a gui for configuration
+--	 * nohelp: do not generate help (actually, help generation is not yet implemented)
+--	 * enhancedProfile: adds "Switch all profiles to default" and "Remove unused profiles" do Ace profile gui
 --
 -- @tparam[opt] table target to use as a base for the addon (optional)
 -- @tparam string name Name of the addon object to create
@@ -247,7 +257,6 @@ end
 -- local myname,addon = ...
 -- LibStub("LibInit"):NewAddon(addon,myname)
 --
----
 function lib:NewAddon(target,...)
 	local name
 	local customOptions
@@ -357,7 +366,7 @@ local tremove=tremove
 local function Run(args) tremove(args,1)(unpack(args)) end
 --- Executes an action as soon as combat restrictions lift
 -- Action can be executed immediately if toon is out of combat
--- @tparam string|function action To be executed, Can be a function or a method name
+-- @tparam string|func action To be executed, Can be a function or a method name
 -- @tparam[opt] mixed ... More parameters will be directly passed to action
 --
 function lib:OnLeaveCombat(action,...)
@@ -393,13 +402,13 @@ end
 --- Returns a closure to call a method as simple local function
 -- @tparam string name Method name
 -- @usage local print=self:Wrap("print") ; print("Hello") same as self:print("Hello") 
--- @return function Wrapper
-function lib:Wrap(nome)
-	if (nome=="Trace") then
+-- @treturn func Wrapper
+function lib:Wrap(name)
+	if (name=="Trace") then
 		return function(...) lib._Trace(self,1,...) end
 	end
-	if (type(self[nome])=="function") then
-		return function(...) self[nome](self,...) end
+	if (type(self[name])=="function") then
+		return function(...) self[name](self,...) end
 	else
 		return nop
 	end
@@ -455,7 +464,7 @@ do
 end
 ---
 -- Return a named chatframe or the default one if no parameter passed
--- @tparam[opt] chat string Chat name
+-- @tparam[opt] string chat Chat name
 -- @return frame requested chat frame, can be nil if "chat" does not exist 
 function lib:GetChatFrame(chat)
 	if (chat) then
@@ -495,7 +504,7 @@ end
 ---
 -- Parses a command from chat or from an table options handjer command
 -- Internally calls AceConsole-3.0:GetArgs
--- @tparam mixed msg Can be a string (chat command) or a table (called by Ace3 Options Table Handler)
+-- @tparam string|table msg Can be a string (when called from chat command) or a table (wbe called by Ace3 Options Table Handler)
 -- @tparam number n index in command list
 -- @return command,subcommand,arg,full string after command
 function lib:Parse(msg,n)
@@ -520,7 +529,8 @@ function lib:GetItemID(itemlink)
 	end
 end
 ---
--- Return the toal numner of bag slots
+-- Return the total numner of bag slots
+-- @treturn number Total bag slots
 function lib:GetTotalBagSlots()
 	local i=0
 	for bag=0,NUM_BAG_SLOTS do
@@ -532,13 +542,21 @@ end
 -- Scans Bags for an item based on different criteria
 --
 -- All parameters are optional.
+-- 
 -- With no parameters ScanBags returns the first empty slot
+-- 
+-- Passing starbag and scanslot allows to continue scanning after the first finding
 --
--- @tparam[opt] number index is index in GetItemInfo result. 0 is a special case to match just itemid
--- @tparam[opt] number value is the value against to match. 0 is a special case for empty slot
--- @tparam[opt] number startbag and startslot are used to restart scan from the last item found
--- @tparam[opt] number startslot
--- @return Found ItemId,bag,slot,full GetItemInfo result
+-- @tparam[opt=0] number index index in GetItemInfo result. 0 is a special case to match just itemid
+-- @tparam[opt=0] number value value against to match. 0 is a special case for empty slot
+-- @tparam[opt=0] number startbag Initialbag to start scan from
+-- @tparam[opt=1] number startslot Initial slot to start scan from 
+-- @treturn[1] number ItemId
+-- @treturn[1] number bag
+-- @treturn[1] number slot
+-- @treturn[1] list all return value from GetItemInfo called on _Itemid_
+-- @treturn[2] bool false If nothing found
+-- 
 function lib:ScanBags(index,value,startbag,startslot)
 	index=index or 0
 	value=value or 0
@@ -1176,6 +1194,13 @@ end
 
 --self:AddToggle("AUTOLEAVE",true,"Quick Battlefield Leave","Alt-Click on hide button in battlefield alert leaves the queue")
 function lib:AddBoolean(...) return self:AddToggle(...) end
+--- Create a boolean configuration var
+-- @tparam string flag variable name
+-- @tparam any defaultvalue
+-- @tparam string name public name  (appears in gui)
+-- @tparam[opt=name] string description long description (appears in tooltip)
+-- @tparam[opt] string icon icon reference
+-- @treturn table A reference to the newly create item inside Ace OptionTable
 function lib:AddToggle(flag,defaultvalue,name,description,icon)
 	description=description or name
 	local group=getgroup(self)
@@ -1695,6 +1720,21 @@ function lib:TimeToStr(time) -- Converts time data to a string format
 		return format("%s%d:%02d",p,m,s)
 	end
 end
+---
+-- Returns a crayon like object
+-- @usage
+-- local C=LibStub("LibInit"):GetColorTable()
+-- C.Azure.c --returns a string "rrggbb"
+-- C.Azure.r --returns red value as a number
+-- C.Azure.g --returns green value as a number
+-- C.Azure.b --returns blue value as a number
+-- tostring(C.Azure) -- returns a string "rrggbb"
+-- "aa" .. C.Azure -- returns "aarrggbb"
+-- C.Azure() -- returns r,g,b as float list
+-- C.Azure.r -- returns r as float
+-- C("testo","azure") -- returns "|cff" .. >color code for azure> .. "test" .. "|r"
+-- -- For a list of available color check Colors
+-- -- Each color became the name of a meth
 
 function lib:GetColorTable()
 	return C
@@ -1826,6 +1866,7 @@ local coroutines=lib.coroutines --#Coroutines
 
 --- Executes an action as soon as a coroutine exit
 -- Action can be executed immediately if coroutine is already dead
+-- @tparam string signature Coroutine indentifier as returined by coroutineExecute
 -- @tparam string|function action To be executed, Can be a function or a method name
 -- @tparam[opt] mixed ... More parameters will be directly passed to action
 --
@@ -1849,14 +1890,14 @@ end
 -- If called for already running coroutine changes the interval and the combat status
 -- @tparam number interval between steps
 -- @tparam string|function action To be executed, Can be a function or a method name
--- @tparam[opt] bool keep running in combat
+-- @tparam[opt] bool combatSafe keep running in combat
 -- @tparam[opt] mixed more parameter are passed to function
-function lib:coroutineExecute(interval,func,combatSafe,...)
-	local signature=strjoin(':',tostringall(self,func,...))
-	if type(func)=="string" then
-		func=self[func]
+function lib:coroutineExecute(interval,action,combatSafe,...)
+	local signature=strjoin(':',tostringall(self,action,...))
+	if type(action)=="string" then
+		action=self[action]
 	end
-	assert(type(func) =="function","coroutineExecute arg1 was not convertible to a function " .. tostring(func))
+	assert(type(action) =="function","coroutineExecute arg1 was not convertible to a function " .. tostring(action))
 	local c=lib.coroutines[signature]
 	c.signature=signature
 	c.interval=interval
@@ -1868,7 +1909,7 @@ function lib:coroutineExecute(interval,func,combatSafe,...)
 		return signature
 	end
 	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then return signature end
-	c.co=coroutine.create(func)
+	c.co=coroutine.create(action)
 	c.running=true
 	c.paused=false
 	do 
@@ -1988,238 +2029,9 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 	end
 	StaticPopup_Show("LIBINIT_POPUP",nil,nil,data);
 end
--- Interface widgets
-local backdrop = {
-	bgFile="Interface\\TutorialFrame\\TutorialFrameBackground",
-	edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
-	tile=true,
-	tileSize=16,
-	edgeSize=16,
-	insets={bottom=7,left=7,right=7,top=7}
-}
-local function addBackdrop(f,color)
-	f:SetBackdrop(backdrop)
-	f:SetBackdropBorderColor(C[color or 'Yellow']())
-end
-local factory={} --#factory
-do
-	local nonce=0
-	local GetTime=GetTime
-	local function GetUniqueName(type,father)
-		if father then 
-			local name=father:GetName()
-			if name then 
-				type=type..name 
-			else
-				type=type..father:GetObjectType()
-			end
-		end
-		nonce=nonce+1
-		return type .. tostring(GetTime()*1000) ..nonce
-	end
-	local function SetScript(this,...)
-		this.child:SetScript(...)
-	end
-	local function SetStep(this,value)
-		this:SetObeyStepOnDrag(true)
-		this:SetValueStep(value)
-		this:SetStepsPerPage(1)
-	end
-	function factory:Slider(father,min,max,current,message,tooltip)
-		if type(message)=="table" then
-			tooltip=message.desc
-			message=message.name
-		end
-		local name=GetUniqueName("slider",father)
-		local sl = CreateFrame('Slider',name, father, 'OptionsSliderTemplate')
-		sl:SetWidth(128)
-		sl:SetHeight(20)
-		sl:SetOrientation('HORIZONTAL')
-		sl:SetMinMaxValues(min, max)
-		sl:SetValue(current or -1)
-		sl.SetStep=SetStep
-		sl.Low=_G[name ..'Low']
-		sl.Low:SetText(min)
-		sl.High=_G[name .. 'High']
-		sl.High:SetText(max)
-		sl.Text=_G[name.. 'Text']
-		sl.Text:SetText(message)
-		sl.Text:SetFontObject(GameFontNormalSmall)
-		sl.Value=sl:CreateFontString(name..'Value','ARTWORK','GameFontHighlightSmall')
-		sl.Value:SetPoint("TOP",sl,"BOTTOM")
-		sl.Value:SetJustifyH("CENTER")
-		sl.SetText=function(this,value) this.Text:SetText(value) end
-		sl.SetFormattedText=function(this,...) this.Text:SetFormattedText(...) end
-		sl.SetTextColor=function(this,...) this.Text:SetTextColor(...) end
-		sl.tooltipText=tooltip
-		function sl:OnValueChanged(value)
-			if (not self.unrounded) then
-				value = math.floor(value)
-			end
-			if (self.isPercent) then
-				self.Value:SetFormattedText('%d%%',value)
-			else
-				self.Value:SetText(value)
-			end
-			self:OnChange(value)
-		end
-		function sl:OnChange(value) end
-		function sl:SetOnChange(func) self.OnChange=func end
-		sl:SetScript("OnValueChanged",sl.OnValueChanged)
-		sl:OnValueChanged(current)
-		return sl
-	end
-	function factory:Checkbox(father,current,message,tooltip)
-		if type(message)=="table" then
-			tooltip=message.desc
-			message=message.name
-		end
-		local frame=CreateFrame("Frame",nil,father)
-		local name=GetUniqueName("checkbox",father)
-		local ck=CreateFrame("CheckButton",name,frame,"ChatConfigCheckButtonTemplate")
-		ck.OnClick=function(this)
-			this.frame:OnChange(this:GetChecked())
-		end		
-		frame.SetScript=SetScript
-		frame.child=ck
-		ck.frame=frame
-		ck:SetPoint('TOPLEFT')
-		ck:SetScript("OnClick",ck.OnClick)
-		ck.Text=_G[name..'Text']
-		ck.Text:SetText(message)
-		ck:SetChecked(current)
-		ck.tooltip=tooltip
-		frame:SetWidth(ck:GetWidth()+ck.Text:GetWidth()+2)
-		frame:SetHeight(ck:GetHeight())
-		function frame:OnChange(value) end
-		function frame:SetOnChange(func) self.OnChange=func end
-		return frame
-	end
-	function factory:Button(father,message,tooltip)
-		if type(message)=="table" then
-			tooltip=message.desc
-			message=message.name
-		end
-		local name=GetUniqueName("button",father)
-		local bt=CreateFrame("Button",name,father,"SecureActionButtonTemplate,GameMenuButtonTemplate")
-		bt:SetText(message)
-		bt.tooltipText=tooltip
-		function bt:SetOnChange(func)
-			if type(func)=="function" then
-				bt:SetScript("OnClick",func)
-			else
-				bt:SetScript("OnClick",function(this,...) this.obj[func](this.obj,this,...) end)
-			end
-		end
-		return bt
-	end
---- Creates a dropdown menu
--- @tparam frame father Parent frame to use
--- @tparam mixed current Initial value
--- @tparam array list Option list 
-	function factory:DropDown(father,current,list,message,tooltip)
-		if type(message)=="table" then
-			tooltip=message.desc
-			message=message.name
-		end
-		local frame=CreateFrame("Frame",nil,father)
-		local framename=GetUniqueName("dropdown",father)
-		local dd=CreateFrame("Frame",framename,frame,"UIDropDownMenuTemplate")
-		_G[framename.."Left"]:SetPoint("TOPLEFT",-15,17)
-		_G[framename.."Middle"]:SetWidth(140)
-		dd:SetPoint("BOTTOMLEFT")
-		dd:SetPoint("BOTTOMRIGHT")
-		frame.SetScript=SetScript
-		frame.child=dd
-		dd.frame=frame
-		local desc=frame:CreateFontString(nil,"ARTWORK","GameFontNormalSmall")
-		desc:SetText(message)
-		desc:SetPoint("TOPLEFT")
-		desc:SetPoint("TOPRIGHT")
-		frame:SetWidth(140)
-		frame:SetHeight(45)		
-		if (tooltip) then
-			dd.tooltip=tooltip
-			dd:SetScript("OnEnter",function(self)
-					GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-					GameTooltip:SetText(self.tooltip, nil, nil, nil, nil, (self.tooltipStyle or true));
-				end
-			)
-		end
-		dd:SetScript("OnLeave",function() GameTooltip:Hide() end)
-		dd.text=dd:CreateFontString(nil,"ARTWORK","GameFontHighlight")
-		function frame:SetText(...)
-			self.child.text:SetText(...)
-		end
-		function frame:SetFormattedText(...)
-			self.child.text:SetFormattedText(...)
-		end
-		function frame:SetTextColor(...)
-			self.child.text:SetTextColor(...)
-		end
-		dd.list=list
-		local name=tostring(GetTime()*1000) ..nonce
-		--dd.dropdown=CreateFrame('Frame',name,father,"UIDropDownMenuTemplate")
-		UIDropDownMenu_Initialize(dd, function(...)
-			local i=0
-			for k,v in pairs(dd.list) do
-				i=i+1
-				local info=UIDropDownMenu_CreateInfo()
-				info.text=v
-				info.value=k
-				info.func=function(...) return dd:OnValueChanged(...) end
-				info.arg1=i
-				info.arg2=k
-				--info.notCheckable=true
-				UIDropDownMenu_AddButton(info)
-			end
-		end)
-		UIDropDownMenu_SetSelectedValue(dd, current)
-		UIDropDownMenu_JustifyText(dd, "LEFT")
-		function dd:OnValueChanged(this,index,value,...)
-			value=value or index
-			UIDropDownMenu_SetSelectedID(dd,index)
-			return self.frame:OnChange(value)
-		end
-		function frame:OnChange(value) end
-		function frame:SetOnChange(func) frame.OnChange=func end
-		return frame
-	end
-	-- These functions directly map to variables
-	local function ToggleSet(this,value)
-		this.obj:ToggleSet(this.flag,this.tipo,value)
-	end
-	function factory:Option(addon,father,flag)
-		if not addon or not addon.GetVarInfo or not father or not flag then
-			return		
-		end
-		local info=addon:GetVarInfo(flag)
-		if not info then error("factory:Option() Not existent " ..flag,2) end
-		local f=father
-		local w
-		local tipo=info.type
-		if (tipo=="toggle") then
-			w=self:Checkbox(f,addon:ToggleGet(flag,tipo),info)
-			w:SetOnChange(ToggleSet)
-		elseif( tipo=="select") then
-			w=self:DropDown(f,addon:ToggleGet(flag,tipo),info.values,info)			
-			w:SetOnChange(ToggleSet)
-		elseif (tipo=="range") then
-			w=self:Slider(f,info.min,info.max,addon:ToggleGet(flag,info.type),info)
-			w:SetOnChange(ToggleSet)
-		elseif (tipo=="execute") then
-			w=self:Button(f,info)
-			w:SetOnChange(info.func)
-		end
-		w.flag=flag
-		w.tipo=tipo
-		w.obj=addon
-		return w		
-	end
-	factory.Dropdown=factory.DropDown -- compatibility
-end
+
 function lib:GetFactory()
-	return factory
+	return F
 end
 local meta={__index=_G,
 __newindex=function(t,k,v)
