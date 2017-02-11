@@ -217,7 +217,8 @@ function lib:CachedTableCount()
 end
 function lib:CacheStats()
 	return stats()
-end--- Create a new AceAddon-3.0 addon.
+end
+--- Create a new AceAddon-3.0 addon.
 -- Any library you specified will be embeded, and the addon will be scheduled for
 -- its OnInitializee and OnEnabled callbacks.
 -- The final addon object, with all libraries embeded, will be returned.
@@ -1864,7 +1865,7 @@ function lib:coroutineExecute(interval,func,combatSafe,...)
 	--@debug@
 		print("")
 	--@end-debug@ 
-		return 
+		return signature
 	end
 	if type(c.co)=="thread" and coroutine.status(c.co)=="suspended" then return signature end
 	c.co=coroutine.create(func)
