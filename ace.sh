@@ -1,6 +1,7 @@
 #!/bin/bash
 release=Release-r1151
-source=svn://svn.wowace.com/wow/ace3/mainline/tags/$release
+#source=svn://svn.wowace.com/wow/ace3/mainline/tags/$release
+source=https://repos.wowace.com/wow/ace3/tags/$release
 mkdir -p LibInit/Ace3
 libxml=LibInit/libs.xml
 echo '<?xml version="1.0" encoding="utf-8"?>' >$libxml
