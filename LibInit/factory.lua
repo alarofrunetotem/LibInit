@@ -14,7 +14,7 @@
 -- widget:SetOnChange(function(checked) end)
 
  
-local factory=LibStub:NewLibrary("LibInit-Colorize",1) --#factory
+local factory=LibStub:NewLibrary("LibInit-Factory",1) --#factory
 if (not factory) then return end
 local backdrop = {
 	bgFile="Interface\\TutorialFrame\\TutorialFrameBackground",
