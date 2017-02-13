@@ -10,4 +10,7 @@ ignore:
 - luac.out
 - doc.txt
 - ace.sh
+- doc.sh
 - localization.lua
+- docs
+- Test.lua
