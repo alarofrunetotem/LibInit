@@ -2,12 +2,13 @@
 -- This file intentionally blank for non internal release
 --@do-not-package@
 local core=LibStub("LibInit"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
+AlarDbg=true
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
 if LibDebug then
 	LibDebug()
 else
-	print("Missing LibDebug",LibDebug)
+	core:Print("Missing LibDebug",LibDebug)
 end
 function core:OnInitialized()
 	self:RegisterChatCommand("mark","Mark")
@@ -27,5 +28,5 @@ function core:Mark(args,chatFrame)
 	AXI:SetFrameLevel(999)
 	AXI:Show()
 end
-print("Loaded Libinit Core Utils")
+core:Print("Loaded Libinit Core Utils")
 --@end-do-not-package@
