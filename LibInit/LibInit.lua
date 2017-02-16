@@ -10,9 +10,25 @@
 -- -- Since now, all LibInit methods are available on self
 
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
-
 local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 40
+local LibStub=LibStub
+local dprint=function() end
+local function encapsulate()
+if LibDebug and AlarDbg then LibDebug() dprint=print end
+end
+encapsulate()
+local obj,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
+if obj then
+	dprint(strconcat("Loading ",MAJOR_VERSION,'.',MINOR_VERSION,' from ',__FILE__))
+	if old then
+		dprint(strconcat("Upgrading ",MAJOR_VERSION,'.',old))
+	end
+--	obj.loadedFrom=__FILE__
+else
+	dprint(strconcat("Already loaded ",MAJOR_VERSION,'.',MINOR_VERSION," checked from ", __FILE__))
+	return
+end
 local off=(_G.RED_FONT_COLOR_CODE or '|cffff0000') .. (_G.VIDEO_OPTIONS_DISABLED or  'Off') .. ( _G.FONT_COLOR_CODE_CLOSE or '|r')
 local on=(_G.GREEN_FONT_COLOR_CODE or '|cff00ff00') .. (_G.VIDEO_OPTIONS_ENABLED or 'On') .. ( _G.FONT_COLOR_CODE_CLOSE or '|r')
 local nop=function()end
@@ -25,10 +41,8 @@ local _G=_G -- Unmodified env
 --@debug@
 -- Checking packager behaviour
 --@end-debug@
+
 local me, ns = ...
-local LibStub=LibStub
-local obj,old=LibStub:NewLibrary(MAJOR_VERSION,MINOR_VERSION)
-local upgrading
 local lib=obj --#Lib
 local L
 local C=LibStub("LibInit-Colorize")()
@@ -115,22 +129,29 @@ wipe(lib.mixins)
 -- @section Recycle
 -- @usage
 -- -- You better upvalue these functions
--- local new=lib.NewTable
--- local del=lib.DelTable
+-- local addon=LibStub("LibInit"):NewAddon("myaddon")
+-- local new=addon:Wrap("NewTable")
+-- local new=addon:Wrap("DelTable")
+-- 
 
 
-local new, del, recursivedel,copy, cached, stats
+local new, del, add, recursivedel,copy, cached, stats
 do
 	local meta={__metatable="RECYCLE"}
 	local pool = lib.pool
 --@debug@
 	local newcount, delcount,createdcount,cached = 0,0,0
 --@end-debug@
-	function new()
+	function new(t)
 --@debug@
 		newcount = newcount + 1
 --@end-debug@
-		local t = next(pool)
+		if type(t)=="table" then
+			local rc=pcall(setmetatable,t,meta)
+			if not rc then return t end
+		else
+			t = next(pool)
+		end
 		if t then
 			pool[t] = nil
 			return t
@@ -140,6 +161,9 @@ do
 --@end-debug@
 			return setmetatable({},meta)
 		end
+	end
+	function add(t)
+		return setmetatable(t,meta)
 	end
 	function copy(t)
 		local c = new()
@@ -152,8 +176,10 @@ do
 --@debug@
 		delcount = delcount + 1
 --@end-debug@
-		wipe(t)
-		pool[t] = true
+		if getmetatable(t)=="RECYCLE" then
+			wipe(t)
+			pool[t] = true
+		end
 	end
 	function recursivedel(t)
 --@debug@
@@ -164,8 +190,10 @@ do
 				recursivedel(v)
 			end
 		end
-		wipe(t)
-		pool[t] = true
+		if getmetatable(t)=="RECYCLE" then
+			wipe(t)
+			pool[t] = true
+		end
 	end
 	function cached()
 		local n = 0
@@ -189,31 +217,38 @@ do
 --@end-non-debug@]===]
 end
 --- Get a new table from the recycle pool
--- Can be called both as a method and a free function
--- Preferred usage is assigning to a local
+-- Preferred usage is assigning to a local via wrap function
+-- @tparam[opt=nil] table tbl Optional table which will be added to the pool after use. Must NOT have a metatable
 -- @treturn table A new table or a recycled one. Table is wiped
 -- @usage
--- local new=addon.NewTable()
-function lib:NewTable()
-	return new()
+-- -- Assuming you upvalued it as new
+-- local t=new()
+-- -- do something
+-- del(t)
+-- t=new()
+-- t.check=new()
+-- del(t,true) -- will recycle both t and t.check
+function lib:NewTable(tbl)
+	if tbl and lib.options[tbl] then
+		return new()
+	else
+		return new(tbl)
+	end
 end
 --- Returns a table to the recycle pool
 -- Table will be wiped
--- Can be called both as a method and a free function
--- Preferred usage is assigning to a local
+-- Only manages tables allocated via NewTable
+-- Other tables are left intact
+-- -- Preferred usage is assigning to a local via wrap function
 -- @tparam table tbl table to be recycled
--- @tparam[opt=false] boolean recursive If true, table wil be wiped and recycled
+-- @tparam[opt=true] boolean recursive If true, embedded tables added cia new table will be wiped and recycled
+-- 
 function lib:DelTable(tbl,recursive)
-	if type(tbl)~="table" then
-		recursive=tbl
-		tbl=self
-	end
+	if type(recursive)=="nil" then recursive=true end
 	assert(type(tbl)=="table","Usage: DelTable(table)")
-	if lib.options[tbl] then
-		error("Called as :DelTable without arguments")
-	end	
 	return recursive and recursivedel(tbl) or del(tbl)
 end
+
 function lib:CachedTableCount()
 	return cached()
 end
@@ -862,7 +897,6 @@ function lib:OnInitialize(...)
 	self.revision=self.revision or options.revision
 	if (AceDB and not self.db) then
 		self.db=AceDB:New(options.DATABASE,nil,options.profile)
-		dprint(self.db:GetCurrentProfile())
 	end
 	if self.db then
 		self.db:RegisterDefaults(self.DbDefaults)
@@ -872,6 +906,7 @@ function lib:OnInitialize(...)
 				self:Colorize(format("(Revision: %s)",options.revision),"silver"),
 				"Disable message with /" .. strlower(options.ID) .. " silent")
 			)
+			self:Print("Using profile ",self.db:GetCurrentProfile())
 		end
 		self:SetEnabledState(self:GetBoolean("Active"))
 	else
@@ -1918,7 +1953,7 @@ local StaticPopup_Show=StaticPopup_Show
 --- Show a popup
 -- Display a popup message with Accept and optionally Cancel button
 -- @tparam string msg Message to be shown
--- @tparam[opt] number timeout In seconds, if omitted assumes 60
+-- @tparam[opt=60] number timeout In seconds, if omitted assumes 60
 -- @tparam[opt] func OnAccept Executed when clicked on Accept
 -- @tparam[opt] func OnCancel Executed when clicked on Cancel (if nill, Cancel button is not shown)
 -- @tparam[opt] mixed data Passed to the callback function
@@ -1952,6 +1987,7 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 		popup.OnShow=nil
 		popup.OnHide=nil
 	end
+	popup.timeout=timeout
 	popup.text=msg
 	popup.OnCancel=nil
 	popup.OnAccept=OnAccept
@@ -1961,11 +1997,11 @@ function lib:Popup(msg,timeout,OnAccept,OnCancel,data,StopCasting)
 		if (type(OnCancel)=="function") then
 			popup.OnCancel=OnCancel
 		end
-		popup.button2 = CANCEL
+		popup.button2=CANCEL
 	else
 		popup.button1=OKAY
 	end
-	StaticPopup_Show("LIBINIT_POPUP",nil,nil,data);
+	return StaticPopup_Show("LIBINIT_POPUP",timeout,SECONDS,data);
 end
 --- Coroutines.
 -- Methods to manage coroutines
