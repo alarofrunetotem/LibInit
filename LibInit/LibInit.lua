@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @classmod lib
 -- @author Alar of Runetotem
--- @release 40
+-- @release 41
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 40
+local MINOR_VERSION = 41
 local LibStub=LibStub
 local dprint=function() end
 local function encapsulate()
@@ -161,9 +161,6 @@ do
 --@end-debug@
 			return setmetatable({},meta)
 		end
-	end
-	function add(t)
-		return setmetatable(t,meta)
 	end
 	function copy(t)
 		local c = new()
@@ -400,7 +397,7 @@ function lib:Wrap(name)
 		return function(...) lib._Trace(self,1,...) end
 	end
 	if (type(self[name])=="function") then
-		return function(...) self[name](self,...) end
+		return function(...) return self[name](self,...) end
 	else
 		return nop
 	end
