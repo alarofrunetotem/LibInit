@@ -242,7 +242,7 @@ end
 -- 
 function lib:DelTable(tbl,recursive)
 	if type(recursive)=="nil" then recursive=true end
-	assert(type(tbl)=="table","Usage: DelTable(table)")
+	assert(type(tbl)=="table","Usage: DelTable(table) called as DelTable(" ..tostring(tbl) ..','..tostring(recursive)..")")
 	return recursive and recursivedel(tbl) or del(tbl)
 end
 
@@ -1854,27 +1854,34 @@ local function kpairs(t,f)
 	end
 	return iter
 end
-
+function lib:Kpairs(t,f)
+	return kpairs(t,f)
+end 
+--- Returns kpairs implementatio
+-- Deprecated in favour of Wrap("Kpairs")
+-- @deprecated
+-- 
 function lib:GetKpairs()
 	return kpairs
 end
 lib.getKpairs=lib.GetKpairs
-local function empty(obj)
+
+--- Implements PHP empty function.
+-- @tparam any obj variable to be tested
+-- @treturn boolean 
+function lib:Empty(obj)
 	if not obj then return true end -- Simplest case, obj evaluates to false in boolean context
 	local t=type(obj)
 	if t=="number" then
 		return obj==0
 	elseif t=="bool" then
-		return true
+		return t
 	elseif t=="string" then
-		return obj=='' or obj==tostring(nil)
+		return obj=='' or obj==tostring(nil) or obj=="0"
 	elseif t=="table" then
 		return not next(obj)
 	end
 	return false -- Userdata and threads can never be empty
-end
-function lib:GetEmpty()
-	return empty
 end
 -- This metatable is used to generate a sorted proxy to an hashed table.
 -- It should not used directly
