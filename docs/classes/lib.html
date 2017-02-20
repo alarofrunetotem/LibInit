@@ -66,7 +66,7 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
     </ul>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Release</strong>: 40</li>
+        <li><strong>Release</strong>: 41</li>
         <li><strong>Author</strong>: Alar of Runetotem</li>
     </ul>
 
@@ -94,11 +94,11 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#lib:DelTable">lib:DelTable (tbl[, recursive=true])</a></td>
-	<td class="summary">Returns a table to the recycle pool Table will be wiped Can be called both as a method and a free function Preferred usage is assigning to a local</td>
+	<td class="summary">Returns a table to the recycle pool Table will be wiped Only manages tables allocated via NewTable Other tables are left intact – Preferred usage is assigning to a local via wrap function</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#lib:NewTable">lib:NewTable ()</a></td>
-	<td class="summary">Get a new table from the recycle pool Can be called both as a method and a free function Preferred usage is assigning to a local</td>
+	<td class="name" nowrap><a href="#lib:NewTable">lib:NewTable ([tbl=nil])</a></td>
+	<td class="summary">Get a new table from the recycle pool Preferred usage is assigning to a local via wrap function</td>
 	</tr>
 </table>
 <h2><a href="#Addon_management">Addon management </a></h2>
@@ -117,6 +117,10 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
 	<tr>
 	<td class="name" nowrap><a href="#lib:Colorize">lib:Colorize (stringa, colore)</a></td>
 	<td class="summary">Colors a string.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#lib:GetBagSlotCount">lib:GetBagSlotCount ()</a></td>
+	<td class="summary">Returns number of free bag slots and total bagt slots.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:GetChatFrame">lib:GetChatFrame ([chat=DEFAULT_CHAT_FRAME])</a></td>
@@ -171,12 +175,20 @@ All parameters are optional.</td>
 <h2><a href="#Hooks">Hooks </a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#lib:Empty">lib:Empty (obj)</a></td>
+	<td class="summary">Implements PHP empty function.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#lib:GetColorTable">lib:GetColorTable ()</a></td>
 	<td class="summary">Returns a crayon like object</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:GetFactory">lib:GetFactory ()</a></td>
 	<td class="summary">Returns a factory for lightweight widgets</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#lib:GetKpairs">lib:GetKpairs ()</a></td>
+	<td class="summary">Returns kpairs implementatio Deprecated in favour of Wrap(“Kpairs”)</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:LoadHelp">lib:LoadHelp ()</a></td>
@@ -203,7 +215,7 @@ All parameters are optional.</td>
 	<td class="summary">Called after VARIABLES_LOADED event, by OnInitialize Ace Hook</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#lib:Popup">lib:Popup (msg[, timeout[, OnAccept[, OnCancel[, data[, StopCasting]]]]])</a></td>
+	<td class="name" nowrap><a href="#lib:Popup">lib:Popup (msg[, timeout=60[, OnAccept[, OnCancel[, data[, StopCasting]]]]])</a></td>
 	<td class="summary">Show a popup Display a popup message with Accept and optionally Cancel button</td>
 	</tr>
 	<tr>
@@ -311,15 +323,16 @@ You can customize defaults here</td>
           </div>
             <h3>Usage:</h3>
             <pre class="example"><span class="comment">-- You better upvalue these functions
-</span><span class="keyword">local</span> new=lib.NewTable
-<span class="keyword">local</span> del=lib.DelTable</pre>
+</span><span class="keyword">local</span> addon=LibStub(<span class="string">"LibInit"</span>):NewAddon(<span class="string">"myaddon"</span>)
+<span class="keyword">local</span> new=addon:Wrap(<span class="string">"NewTable"</span>)
+<span class="keyword">local</span> new=addon:Wrap(<span class="string">"DelTable"</span>)</pre>
     <dl class="function">
     <dt>
     <a name = "lib:DelTable"></a>
     <strong>lib:DelTable (tbl[, recursive=true])</strong>
     </dt>
     <dd>
-    Returns a table to the recycle pool Table will be wiped Can be called both as a method and a free function Preferred usage is assigning to a local
+    Returns a table to the recycle pool Table will be wiped Only manages tables allocated via NewTable Other tables are left intact – Preferred usage is assigning to a local via wrap function
 
 
     <h3>Parameters:</h3>
@@ -330,7 +343,7 @@ You can customize defaults here</td>
         </li>
         <li><span class="parameter">recursive</span>
             <span class="types"><span class="type">boolean</span></span>
-        If true, table wil be wiped and recycled
+        If true, embedded tables added cia new table will be wiped and recycled
          (<em>default</em> true)
         </li>
     </ul>
@@ -342,12 +355,20 @@ You can customize defaults here</td>
 </dd>
     <dt>
     <a name = "lib:NewTable"></a>
-    <strong>lib:NewTable ()</strong>
+    <strong>lib:NewTable ([tbl=nil])</strong>
     </dt>
     <dd>
-    Get a new table from the recycle pool Can be called both as a method and a free function Preferred usage is assigning to a local
+    Get a new table from the recycle pool Preferred usage is assigning to a local via wrap function
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tbl</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        Optional table which will be added to the pool after use. Must NOT have a metatable
+         (<em>default</em> nil)
+        </li>
+    </ul>
 
     <h3>Returns:</h3>
     <ol>
@@ -360,7 +381,13 @@ You can customize defaults here</td>
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example"><span class="keyword">local</span> new=addon.NewTable()</pre>
+        <pre class="example"><span class="comment">-- Assuming you upvalued it as new
+</span><span class="keyword">local</span> t=new()
+<span class="comment">-- do something
+</span>del(t)
+t=new()
+t.check=new()
+del(t,<span class="keyword">true</span>) <span class="comment">-- will recycle both t and t.check</span></pre>
     </ul>
 
 </dd>
@@ -504,6 +531,29 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
 
            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
         Colored string
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "lib:GetBagSlotCount"></a>
+    <strong>lib:GetBagSlotCount ()</strong>
+    </dt>
+    <dd>
+    Returns number of free bag slots and total bagt slots.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+           <span class="types"><span class="type">number</span></span>
+        Free bag slots</li>
+        <li>
+           <span class="types"><span class="type">number</span></span>
+        Total bag slots</li>
     </ol>
 
 
@@ -864,6 +914,33 @@ Generates Apply* events if needed
           </div>
     <dl class="function">
     <dt>
+    <a name = "lib:Empty"></a>
+    <strong>lib:Empty (obj)</strong>
+    </dt>
+    <dd>
+    Implements PHP empty function.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">obj</span>
+            <span class="types"><span class="type">any</span></span>
+        variable to be tested
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
     <a name = "lib:GetColorTable"></a>
     <strong>lib:GetColorTable ()</strong>
     </dt>
@@ -907,6 +984,20 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
     <ul>
          <a href="../classes/factory.html#">factory</a>
     </ul>
+
+
+</dd>
+    <dt>
+    <a name = "lib:GetKpairs"></a>
+    <strong>lib:GetKpairs ()</strong>
+    </dt>
+    <dd>
+    Returns kpairs implementatio Deprecated in favour of Wrap(“Kpairs”)
+
+
+
+
+
 
 
 </dd>
@@ -1010,7 +1101,7 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
 </dd>
     <dt>
     <a name = "lib:Popup"></a>
-    <strong>lib:Popup (msg[, timeout[, OnAccept[, OnCancel[, data[, StopCasting]]]]])</strong>
+    <strong>lib:Popup (msg[, timeout=60[, OnAccept[, OnCancel[, data[, StopCasting]]]]])</strong>
     </dt>
     <dd>
     Show a popup Display a popup message with Accept and optionally Cancel button
@@ -1025,7 +1116,7 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
         <li><span class="parameter">timeout</span>
             <span class="types"><span class="type">number</span></span>
         In seconds, if omitted assumes 60
-         (<em>optional</em>)
+         (<em>default</em> 60)
         </li>
         <li><span class="parameter">OnAccept</span>
             <span class="types"><span class="type">func</span></span>
@@ -1235,7 +1326,7 @@ self:StopAutomaticEvents()
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-02-13 23:33:14 </i>
+<i style="float:right;">Last updated 2017-02-20 09:46:48 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

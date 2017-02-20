@@ -635,10 +635,22 @@ function lib:ScanBags(index,value,startbag,startslot)
 	end
 	return false
 end
+
+--- Returns number of free bag slots and total bagt slots.
+-- @treturn number Free bag slots
+-- @treturn number Total bag slots
+function lib:GetBagSlotCount()
+	local free,total=0,0
+	for bag=0,NUM_BAG_SLOTS do
+		free=free+(GetContainerNumFreeSlots(bag) or 0)
+		total=total+(GetContainerNumSlots(bag) or 0)
+	end
+	return free,total
+end
+
 --- Returns unit's health as a normalized percent value
 -- @tparam string unit A standard unit name
 -- @treturn number health as percent value
-
 function lib:Health(unit)
 		local totale=UnitHealthMax(unit) or 1
 		local corrente=UnitHealth(unit) or 1
