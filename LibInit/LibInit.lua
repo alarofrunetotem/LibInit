@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @classmod lib
 -- @author Alar of Runetotem
--- @release 41
+-- @release 42
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 41
+local MINOR_VERSION = 42
 local LibStub=LibStub
 local dprint=function() end
 local function encapsulate()
@@ -116,7 +116,7 @@ lib.chats=lib.chats or {}
 lib.options=lib.options or {} 
 --- Recycling system pool.
 -- 
-lib.pool=lib.pool or setmetatable({},{__mode="k",__tostring=function(t) return "Recycle Pool:" end})
+lib.pool=lib.pool or setmetatable({[{}]=nil,[{}]=nil,[{}]=nil,[{}]=nil,[{}]=nil},{__mode="k",__tostring=function(t) return "Recycle Pool:" end})
 --- Mixins list
 --
 lib.mixins=lib.mixins or {}
@@ -140,7 +140,7 @@ do
 	local meta={__metatable="RECYCLE"}
 	local pool = lib.pool
 --@debug@
-	local newcount, delcount,createdcount,cached = 0,0,0
+	local newcount, delcount,createdcount = 0,0,0
 --@end-debug@
 	function new(t)
 --@debug@
