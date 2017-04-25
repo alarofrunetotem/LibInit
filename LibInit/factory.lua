@@ -6,7 +6,7 @@
 -- 
 -- @classmod factory
 -- @author Alar of Runetotem
--- @release 1
+-- @release 2
 -- @usage
 -- local addon=LibStub("LibInit"):newAddon("example")
 -- local factory=addon:GetFactory()
@@ -14,7 +14,7 @@
 -- widget:SetOnChange(function(checked) end)
 
  
-local factory=LibStub:NewLibrary("LibInit-Factory",1) --#factory
+local factory=LibStub:NewLibrary("LibInit-Factory",2) --#factory
 if (not factory) then return end
 local backdrop = {
 	bgFile="Interface\\TutorialFrame\\TutorialFrameBackground",
@@ -179,7 +179,7 @@ end
 	end
 	local frame=CreateFrame("Frame",nil,father)
 	local framename=GetUniqueName("dropdown",father)
-	local dd=CreateFrame("Frame",framename,frame,"UIDropDownMenuTemplate")
+	local dd=CreateFrame("Frame",framename,frame,"MSA_DropDownMenuTemplate")
 	_G[framename.."Left"]:SetPoint("TOPLEFT",-15,17)
 	_G[framename.."Middle"]:SetWidth(140)
 	dd:SetPoint("BOTTOMLEFT")
@@ -214,26 +214,25 @@ end
 	end
 	dd.list=list
 	local name=tostring(GetTime()*1000) ..nonce
-	--dd.dropdown=CreateFrame('Frame',name,father,"UIDropDownMenuTemplate")
-	UIDropDownMenu_Initialize(dd, function(...)
+	MSA_DropDownMenu_Initialize(dd, function(...)
 		local i=0
 		for k,v in pairs(dd.list) do
 			i=i+1
-			local info=UIDropDownMenu_CreateInfo()
+			local info=MSA_DropDownMenu_CreateInfo()
 			info.text=v
 			info.value=k
 			info.func=function(...) return dd:OnValueChanged(...) end
 			info.arg1=i
 			info.arg2=k
 			--info.notCheckable=true
-			UIDropDownMenu_AddButton(info)
+			MSA_DropDownMenu_AddButton(info)
 		end
 	end)
-	UIDropDownMenu_SetSelectedValue(dd, current)
-	UIDropDownMenu_JustifyText(dd, "LEFT")
+	MSA_DropDownMenu_SetSelectedValue(dd, current)
+	MSA_DropDownMenu_JustifyText(dd, "LEFT")
 	function dd:OnValueChanged(this,index,value,...)
 		value=value or index
-		UIDropDownMenu_SetSelectedID(dd,index)
+		MSA_DropDownMenu_SetSelectedID(dd,index)
 		return self.frame:OnChange(value)
 	end
 	function frame:OnChange(value) end
