@@ -61,7 +61,7 @@ widget:SetOnChange(function(checked) end)
     </ul>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Release</strong>: 1</li>
+        <li><strong>Release</strong>: 2</li>
         <li><strong>Author</strong>: Alar of Runetotem</li>
     </ul>
 
@@ -69,23 +69,23 @@ widget:SetOnChange(function(checked) end)
 <h2><a href="#Methods">Methods</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#factory:Button">factory:Button (father, message[, tooltip])</a></td>
+	<td class="name" nowrap><a href="#factory:Button">factory:Button (father, message[, tooltip[, maxwidth]])</a></td>
 	<td class="summary">Creates a buttom.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#factory:Checkbox">factory:Checkbox (father, current, message[, tooltip])</a></td>
+	<td class="name" nowrap><a href="#factory:Checkbox">factory:Checkbox (father, current, message[, tooltip[, maxwidth]])</a></td>
 	<td class="summary">Creates a checkbox.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#factory:DropDown">factory:DropDown (father, current, list, message[, tooltip])</a></td>
+	<td class="name" nowrap><a href="#factory:DropDown">factory:DropDown (father, current, list, message[, tooltip[, maxwidth]])</a></td>
 	<td class="summary">Creates a dropdown menu.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#factory:Option">factory:Option (addon, father, flag)</a></td>
+	<td class="name" nowrap><a href="#factory:Option">factory:Option (addon, father, flag[, maxwidth])</a></td>
 	<td class="summary">Quickly defines a widget for a defined configuration variable All data for the widget are inferred for the variable</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#factory:Slider">factory:Slider (father, min, max, current, message[, tooltip])</a></td>
+	<td class="name" nowrap><a href="#factory:Slider">factory:Slider (father, min, max, current, message[, tooltip[, maxwidth]])</a></td>
 	<td class="summary">Creates a slider.</td>
 	</tr>
 </table>
@@ -99,7 +99,7 @@ widget:SetOnChange(function(checked) end)
     <dl class="function">
     <dt>
     <a name = "factory:Button"></a>
-    <strong>factory:Button (father, message[, tooltip])</strong>
+    <strong>factory:Button (father, message[, tooltip[, maxwidth]])</strong>
     </dt>
     <dd>
     Creates a buttom.
@@ -120,6 +120,11 @@ widget:SetOnChange(function(checked) end)
         Tooltip message (ignored if message is a table
          (<em>optional</em>)
         </li>
+        <li><span class="parameter">maxwidth</span>
+            <span class="types"><span class="type">number</span></span>
+        maximum widget width
+         (<em>optional</em>)
+        </li>
     </ul>
 
     <h3>Returns:</h3>
@@ -135,7 +140,7 @@ widget:SetOnChange(function(checked) end)
 </dd>
     <dt>
     <a name = "factory:Checkbox"></a>
-    <strong>factory:Checkbox (father, current, message[, tooltip])</strong>
+    <strong>factory:Checkbox (father, current, message[, tooltip[, maxwidth]])</strong>
     </dt>
     <dd>
     Creates a checkbox.
@@ -160,6 +165,11 @@ widget:SetOnChange(function(checked) end)
         Tooltip message (ignored if message is a table)
          (<em>optional</em>)
         </li>
+        <li><span class="parameter">maxwidth</span>
+            <span class="types"><span class="type">number</span></span>
+        maximum widget width
+         (<em>optional</em>)
+        </li>
     </ul>
 
     <h3>Returns:</h3>
@@ -175,7 +185,7 @@ widget:SetOnChange(function(checked) end)
 </dd>
     <dt>
     <a name = "factory:DropDown"></a>
-    <strong>factory:DropDown (father, current, list, message[, tooltip])</strong>
+    <strong>factory:DropDown (father, current, list, message[, tooltip[, maxwidth]])</strong>
     </dt>
     <dd>
     Creates a dropdown menu. Create a totally new frame in order to avoid taint
@@ -204,6 +214,11 @@ widget:SetOnChange(function(checked) end)
         Tooltip message (ignored if message is a table)
          (<em>optional</em>)
         </li>
+        <li><span class="parameter">maxwidth</span>
+            <span class="types"><span class="type">number</span></span>
+        maximum widget width
+         (<em>optional</em>)
+        </li>
     </ul>
 
     <h3>Returns:</h3>
@@ -219,7 +234,7 @@ widget:SetOnChange(function(checked) end)
 </dd>
     <dt>
     <a name = "factory:Option"></a>
-    <strong>factory:Option (addon, father, flag)</strong>
+    <strong>factory:Option (addon, father, flag[, maxwidth])</strong>
     </dt>
     <dd>
     Quickly defines a widget for a defined configuration variable All data for the widget are inferred for the variable
@@ -239,6 +254,11 @@ widget:SetOnChange(function(checked) end)
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
         name of the variable to use
         </li>
+        <li><span class="parameter">maxwidth</span>
+            <span class="types"><span class="type">number</span></span>
+        maximum widget width
+         (<em>optional</em>)
+        </li>
     </ul>
 
 
@@ -248,7 +268,7 @@ widget:SetOnChange(function(checked) end)
 </dd>
     <dt>
     <a name = "factory:Slider"></a>
-    <strong>factory:Slider (father, min, max, current, message[, tooltip])</strong>
+    <strong>factory:Slider (father, min, max, current, message[, tooltip[, maxwidth]])</strong>
     </dt>
     <dd>
     Creates a slider.
@@ -281,6 +301,11 @@ widget:SetOnChange(function(checked) end)
         Tooltip message (ignored if message is a table)
          (<em>optional</em>)
         </li>
+        <li><span class="parameter">maxwidth</span>
+            <span class="types"><span class="type">number</span></span>
+        maximum widget width
+         (<em>optional</em>)
+        </li>
     </ul>
 
     <h3>Returns:</h3>
@@ -301,7 +326,7 @@ widget:SetOnChange(function(checked) end)
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-03-09 17:36:13 </i>
+<i style="float:right;">Last updated 2017-08-21 16:54:16 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
