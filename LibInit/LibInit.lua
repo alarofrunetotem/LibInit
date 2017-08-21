@@ -1872,9 +1872,8 @@ end
 function lib:Kpairs(t,f)
 	return kpairs(t,f)
 end 
---- Returns kpairs implementatio
+--- Returns kpairs implementation
 -- Deprecated in favour of Wrap("Kpairs")
--- @deprecated
 -- 
 function lib:GetKpairs()
 	return kpairs
