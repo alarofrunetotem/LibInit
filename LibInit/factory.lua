@@ -141,13 +141,13 @@ function factory:Slider(father,min,max,current,...)
 		if (not sl.unrounded) then
 			value = math.floor(value)
 		end
-		if value==frame.lastvalue then return end
-		frame.lastvalue=value
 		if (sl.isPercent) then
 			sl.Value:SetFormattedText('%d%%',value)
 		else
 			sl.Value:SetText(value)
 		end
+		if value==frame.lastvalue then return end
+		frame.lastvalue=value
 		OnChange(frame,value)
 	end
 	function frame:SetOnChange(func) 
