@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @classmod lib
 -- @author Alar of Runetotem
--- @release 42
+-- @release 43
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -2198,6 +2198,8 @@ function lib:StartAutomaticEvents()
 	for k,v in pairs(self) do
 		if (type(v)=='function') then
 			if (k:sub(1,3)=='Evt') then
+				_G.print(self,"Registering",k)
+				self:Print("Registering",k)				
 				self:RegisterEvent(k:sub(4),k)
 			end
 		end

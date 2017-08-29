@@ -14,3 +14,7 @@ ignore:
 - localization.lua
 - docs
 - Test.lua
+- config.ld
+- .buildpath
+- .project
+- .settings 

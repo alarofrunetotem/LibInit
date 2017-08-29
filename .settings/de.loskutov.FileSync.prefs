@@ -1,0 +1,7 @@
+WARNING=DO NOT MODIFY THIS FILE IF YOU DON'T UNDERSTAND
+defaultDestination=/home/giovanni/AddOns/LibInit
+defaultVariables=
+eclipse.preferences.version=1
+includeTeamPrivateFiles=false
+map|0=/|,|,|.buildpath;.docmeta;.gitignore;.pkgmeta;.project;.settings/;/;README.md;Test.lua;ace.sh;doc.sh;docs/|,
+useCurrentDateForDestinationFiles=false
