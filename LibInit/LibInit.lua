@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @classmod lib
 -- @author Alar of Runetotem
--- @release 43
+-- @release 44
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 43
+local MINOR_VERSION = 44
 local LibStub=LibStub
 local dprint=function() end
 local function encapsulate()
