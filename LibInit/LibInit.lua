@@ -176,18 +176,21 @@ do
 --@debug@
 		delcount = delcount + 1
 --@end-debug@
-		if getmetatable(t)=="RECYCLE" then
+		if getmetatable(t)==meta then
 			wipe(t)
 			pool[t] = true
 		end
 	end
-	function recursivedel(t)
+	function recursivedel(t,level)
+		level=level or 0
 --@debug@
 		delcount = delcount + 1
 --@end-debug@
 		for k,v in pairs(t) do
 			if type(v)=="table" and getmetatable(v) == "RECYCLE" then
-				recursivedel(v)
+				if level < 2 then
+					recursivedel(v,level+1)
+				end
 			end
 		end
 		if getmetatable(t)=="RECYCLE" then
