@@ -6,7 +6,7 @@
 -- 
 -- @classmod factory
 -- @author Alar of Runetotem
--- @release 2
+-- @release 4
 -- @usage
 -- local addon=LibStub("LibInit"):newAddon("example")
 -- local factory=addon:GetFactory()
@@ -20,7 +20,7 @@ local CreateFrame=CreateFrame
 local type=type
 local tostring=tostring
  
-local factory=LibStub:NewLibrary("LibInit-Factory",3) --#factory
+local factory=LibStub:NewLibrary("LibInit-Factory",4) --#factory
 if (not factory) then return end
 factory.nonce=factory.nonce or 0
 local backdrop = {
