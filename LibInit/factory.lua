@@ -12,6 +12,9 @@
 -- local factory=addon:GetFactory()
 -- local widget=factory:Checkbox(frame,true,"Checkbox","Checkbox tooltip")
 -- widget:SetOnChange(function(checked) end)
+-- --You can set a cutom object so you can pass a method to SetOnChange:
+-- widget:SetObj(mytable)
+-- widget:SetOnChange("method")
 
 
 local GetTime=GetTime
@@ -20,7 +23,7 @@ local CreateFrame=CreateFrame
 local type=type
 local tostring=tostring
  
-local factory=LibStub:NewLibrary("LibInit-Factory",4) --#factory
+local factory=LibStub:NewLibrary("LibInit-Factory",5) --#factory
 if (not factory) then return end
 factory.nonce=factory.nonce or 0
 local backdrop = {
@@ -61,7 +64,13 @@ end
 local function OnTooltip(this)
 	GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
 	GameTooltip:AddLine(this.message or "Prova" ,0,1,0)
-	GameTooltip:AddLine(this.tooltip, nil, nil, nil, nil, (this.tooltipStyle or true));
+	if type(tooltip)=="table" then
+		for _,row in pairs(tooltip) do
+			GameTooltip:AddLine(this.tooltip, nil, nil, nil, nil, (this.tooltipStyle or true))
+		end
+	else
+		GameTooltip:AddLine(this.tooltip, nil, nil, nil, nil, (this.tooltipStyle or true))
+	end
 	GameTooltip:Show()
 end
 local function SetUp(father,widgetType,message,tooltip,maxwidth)
@@ -80,6 +89,7 @@ local function SetUp(father,widgetType,message,tooltip,maxwidth)
 	end
 	frame:SetScript("OnEnter",tooltip and OnTooltip or nil)
 	frame:SetScript("OnLeave",function() GameTooltip:Hide() end)
+	frame.SetObj=function(self,obj) self.obj=obj end
 	maxwidth=maxwidth or 140
 	frame:SetWidth(maxwidth)
 	frame.message=message
@@ -95,7 +105,7 @@ end
 -- @tparam number max Maximum value
 -- @tparam number current Actual value
 -- @tparam string|table message String with description or table with .desc and .tooltip fields 
--- @tparam[opt] string tooltip Tooltip message (ignored if message is a table) 
+-- @tparam[opt] string tooltip Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip
 -- @tparam[opt] number maxwidth maximum widget width
 -- @treturn widget slider widget object
 -- 
@@ -169,7 +179,7 @@ end
 -- @tparam frame father Parent frame to use
 -- @tparam bool current Actual value
 -- @tparam string|table message String with description or table with .desc and .tooltip fields 
--- @tparam[opt] string tooltip Tooltip message (ignored if message is a table)
+-- @tparam[opt] string tooltip Tooltip message (ignored if message is a table).Can be a table for a multiline tooltip
 -- @tparam[opt] number maxwidth maximum widget width
 -- @treturn widget checkbox widget object
 -- 
@@ -211,7 +221,7 @@ end
 -- 
 -- @tparam frame father Parent frame to use
 -- @tparam string|table message String with description or table with .desc and .tooltip fields 
--- @tparam[opt] string tooltip Tooltip message (ignored if message is a table
+-- @tparam[opt] string tooltip Tooltip message (ignored if message is a table. Can be a table for a multiline tooltip
 -- @tparam[opt] number maxwidth maximum widget width
 -- @treturn widget button widget object
 -- 
@@ -236,7 +246,7 @@ end
 -- @tparam mixed current Initial value
 -- @tparam tab list Option list
 -- @tparam string|table message String with description or table with .desc and .tooltip fields 
--- @tparam[opt] string tooltip Tooltip message (ignored if message is a table) 
+-- @tparam[opt] string tooltip Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip 
 -- @tparam[opt] number maxwidth maximum widget width
 -- @treturn widget dropdown widget object
 -- 
