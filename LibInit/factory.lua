@@ -12,7 +12,7 @@
 -- local factory=addon:GetFactory()
 -- local widget=factory:Checkbox(frame,true,"Checkbox","Checkbox tooltip")
 -- widget:SetOnChange(function(checked) end)
--- --You can set a cutom object so you can pass a method to SetOnChange:
+-- --You can set a custom object so you can pass a method to SetOnChange:
 -- widget:SetObj(mytable)
 -- widget:SetOnChange("method")
 
