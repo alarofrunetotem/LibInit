@@ -23,7 +23,7 @@ local CreateFrame=CreateFrame
 local type=type
 local tostring=tostring
  
-local factory=LibStub:NewLibrary("LibInit-Factory",5) --#factory
+local factory=LibStub:NewLibrary("LibInit-Factory",6) --#factory
 if (not factory) then return end
 factory.nonce=factory.nonce or 0
 local backdrop = {
@@ -64,22 +64,34 @@ end
 local function OnTooltip(this)
 	GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
 	GameTooltip:AddLine(this.message or "Prova" ,0,1,0)
-	if type(tooltip)=="table" then
-		for _,row in pairs(tooltip) do
-			GameTooltip:AddLine(this.tooltip, nil, nil, nil, nil, (this.tooltipStyle or true))
+	if type(this.tooltip)=="table" then
+		for i,row in pairs(this.tooltip) do
+			if (type(i)=="number") then
+				GameTooltip:AddLine(row, nil, nil, nil, nil, (this.tooltipStyle or true))
+			else
+				GameTooltip:AddDoubleLine(i,row)
+			end		
 		end
 	else
 		GameTooltip:AddLine(this.tooltip, nil, nil, nil, nil, (this.tooltipStyle or true))
 	end
 	GameTooltip:Show()
 end
+---
+-- tooltip can be
+-- a string == AddLine
+-- a multiline strinf == Multiple AddLine
+-- a vector == Multiple AddLine
+-- a hash == Multiple AddDoubleLine(key,value)
 local function SetUp(father,widgetType,message,tooltip,maxwidth)
 	local name=GetUniqueName(widgetType,father)
 	if type(message)=="table" then
 		tooltip=message.desc
 		maxwidth=message.maxwidth
 		message=message.name
-		
+	end
+	if type(tooltip)=="string" and tooltip:find("\n") then
+		tooltip={strsplit("\n",tooltip)}
 	end
 	local frame
 	if widgetType=="Button" then
