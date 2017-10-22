@@ -8,6 +8,13 @@ function UnitFactionGroup(unit) return "ALLIANCE" end
 function GetLocale() return "enus" end
 function GetCurrentRegion() return 3 end
 function GetBuildInfo() return 1,2,3,70100,3 end
+function strconcat(...)
+  local s=''
+  for i=1,select('#',...) do
+    s=s .. tostring(select(i,...))
+  end
+  return s
+end
 function wipe(tbl)
 	for k,v in pairs(tbl) do tbl[k]=nil end
 end
@@ -37,9 +44,10 @@ loadfile("LibInit/Ace3/AceGUI-3.0/AceGUI-3.0.lua")()
 loadfile("LibInit/Ace3/AceHook-3.0/AceHook-3.0.lua")()
 loadfile("LibInit/Ace3/AceLocale-3.0/AceLocale-3.0.lua")()
 --loadfile("LibInit/Ace3/AceTimer-3.0/AceTimer-3.0.lua")()
+require("LibInit/LibInit")
+require("LibInit/localization")
 require("LibInit/colorize")
 require("LibInit/factory")
-require("LibInit/LibInit")
 local p=print
 function print(...) p("TT:",...) end
 function dump(tbl)
@@ -48,8 +56,8 @@ function dump(tbl)
 	print("")
 end
 local lib=LibStub("LibInit")
-local new=lib.NewTable
-local del=lib.DelTable
+local new=lib:Wrap("NewTable")
+local del=lib:Wrap("DelTable")
 data=new()
 data.data=1
 data2=new()
