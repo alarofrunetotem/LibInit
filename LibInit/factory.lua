@@ -16,8 +16,6 @@
 -- widget:SetObj(mytable)
 -- widget:SetOnChange("method")
 
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):19:")) -- Always check line number in regexp and file
-print(__FILE__)
 local LibStub=LibStub
 local libinit,MINOR_VERSION = LibStub("LibInit")
 if not libinit then return end

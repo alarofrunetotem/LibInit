@@ -1,5 +1,3 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-print(__FILE__)
 local LibStub=LibStub
 local MAJOR_VERSION="LibInit"
 local libinit,MINOR_VERSION = LibStub("LibInit")

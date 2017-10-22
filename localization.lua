@@ -1,14 +1,9 @@
-local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 45
-local me=MAJOR_VERSION
+local LibStub=LibStub
+local MAJOR_VERSION="LibInit"
+local libinit,MINOR_VERSION = LibStub("LibInit")
+if not libinit then return end
+local me=MAJOR_VERSION .. MINOR_VERSION
 local l=LibStub("AceLocale-3.0")
-local loaded=l:GetLocale(MAJOR_VERSION,true)
-if loaded and loaded['MINOR'] and loaded['MINOR'] >= MINOR_VERSION then
---@debug@
-	_G.print('LibInit dictionary already at revision' ..loaded['MINOR'])
---@end-debug@
-	return
-end
 local L=l:NewLocale(me,"enUS",true,true)
 if L then
 L["Configuration"] = "Configuration"
@@ -174,3 +169,5 @@ L["UseDefault_Desc"] = "\230\130\168\229\143\175\228\187\165\229\188\183\229\136
 L["UseDefault1"] = "\228\186\164\230\143\155\230\169\159\231\154\132\230\137\128\230\156\137\229\173\151\231\172\166\226\128\156\239\188\133s\226\128\157\231\154\132\229\128\139\228\186\186\232\179\135\230\150\153"
 L["UseDefault2"] = "\228\189\191\231\148\168\226\128\156\239\188\133s\226\128\157\230\155\178\231\183\154\231\154\132\230\137\128\230\156\137\232\167\146\232\137\178"
 end
+libinit:_SetLocalization(l:GetLocale(me,true))
+

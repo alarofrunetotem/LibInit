@@ -21,8 +21,6 @@
 -- -- For a list of available color check Colors
 -- -- Each color became the name of a method
 --
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):24:")) -- Always check line number in regexp and file
-print(__FILE__)
 local LibStub=LibStub
 local libinit,MINOR_VERSION = LibStub("LibInit")
 if not libinit then return end
