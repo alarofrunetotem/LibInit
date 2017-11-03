@@ -3,7 +3,6 @@
 -- @name Colorize
 -- @class module
 -- @author Alar of Daggerspine
--- @release 6
 
 ---
 -- @type C

@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @classmod lib
 -- @author Alar of Runetotem
--- @release 46
+-- @release 47
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -10,9 +10,8 @@
 -- -- Since now, all LibInit methods are available on self
 
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
-print(__FILE__)
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 46
+local MINOR_VERSION = 47
 local LibStub=LibStub
 local dprint=function() end
 local function encapsulate()

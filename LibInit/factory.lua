@@ -6,7 +6,6 @@
 -- 
 -- @classmod factory
 -- @author Alar of Runetotem
--- @release 4
 -- @usage
 -- local addon=LibStub("LibInit"):newAddon("example")
 -- local factory=addon:GetFactory()
