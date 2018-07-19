@@ -11,7 +11,7 @@
 
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 48
+local MINOR_VERSION = 49
 local LibStub=LibStub
 local dprint=function() end
 local function encapsulate()
