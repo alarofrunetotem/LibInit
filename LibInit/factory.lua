@@ -265,8 +265,8 @@ end
 -- @tparam frame father Parent frame to use
 -- @tparam mixed current Initial value
 -- @tparam tab list Option list
--- @tparam string|table message String with description or table with .desc and .tooltip fields 
--- @tparam[opt] string tooltip Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip 
+-- @tparam string|table message String with description or table with .desc and .tooltip fields
+-- @tparam[opt] string tooltip Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip
 -- @tparam[opt] number maxwidth maximum widget width
 -- @treturn widget dropdown widget object
 --
@@ -275,7 +275,7 @@ end
 	frame:SetHeight(50)
 	frame:SetWidth(frame.maxwidth)
 	frame.SetOnChange=function() end
-	local dd=MSA_DropDownMenu_Create("MyDropDown", ParentFrame)	
+	local dd=MSA_DropDownMenu_Create(name, frame)
 	dd:SetPoint("BOTTOMLEFT")
 	dd:SetPoint("BOTTOMRIGHT")
 	dd.Left=_G[name.."Left"]
@@ -298,7 +298,7 @@ end
 	--dd:SetPoint("TOPRIGHT",0,-h)
 	frame.SetScript=SetScript
 	frame.child=dd
-	if frame.tooltip then 
+	if frame.tooltip then
 		dd:SetScript("OnEnter",function() frame:GetScript("OnEnter")(frame) end)
 	end
 
