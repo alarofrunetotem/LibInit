@@ -1,4 +1,4 @@
 #!/bin/bash
-cd $(dirname $0) or exit
-ldoc=/usr/local/bin/ldoc
+cd $(dirname $0) | exit
+ldoc=/usr/bin/ldoc
 $ldoc .

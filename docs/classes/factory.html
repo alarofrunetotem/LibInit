@@ -48,9 +48,11 @@
 
 <h1>Class <code>factory</code></h1>
 <p>Class used to build lightweight widgets for configuration options.</p>
-<p><p>You can obtain it calling GetFactory() method.</p>
-
-All widgets communicate with your code via the OnChange Callback and expose a SetOnChange method to set it </p>
+<p>
+ You can obtain it calling GetFactory() method.
+<p> All widgets communicate with your code via the OnChange Callback and expose a
+ SetOnChange method to set it
+</p>
     <h3>Usage:</h3>
     <ul>
         <pre class="example">local addon=LibStub(&quot;LibInit&quot;):newAddon(&quot;example&quot;)
@@ -64,7 +66,6 @@ widget:SetOnChange(&quot;method&quot;)
     </ul>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Release</strong>: 4</li>
         <li><strong>Author</strong>: Alar of Runetotem</li>
     </ul>
 
@@ -85,7 +86,8 @@ widget:SetOnChange(&quot;method&quot;)
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#factory:Option">factory:Option (addon, father, flag[, maxwidth])</a></td>
-	<td class="summary">Quickly defines a widget for a defined configuration variable All data for the widget are inferred for the variable</td>
+	<td class="summary">Quickly defines a widget for a defined configuration variable
+ All data for the widget are inferred for the variable</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#factory:Slider">factory:Slider (father, min, max, current, message[, tooltip[, maxwidth]])</a></td>
@@ -112,20 +114,20 @@ widget:SetOnChange(&quot;method&quot;)
     <ul>
         <li><span class="parameter">father</span>
             <span class="types"><span class="type">frame</span></span>
-        Parent frame to use
+         Parent frame to use
         </li>
         <li><span class="parameter">message</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        String with description or table with .desc and .tooltip fields
+         String with description or table with .desc and .tooltip fields
         </li>
         <li><span class="parameter">tooltip</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Tooltip message (ignored if message is a table. Can be a table for a multiline tooltip
+         Tooltip message (ignored if message is a table. Can be a table for a multiline tooltip
          (<em>optional</em>)
         </li>
         <li><span class="parameter">maxwidth</span>
             <span class="types"><span class="type">number</span></span>
-        maximum widget width
+         maximum widget width
          (<em>optional</em>)
         </li>
     </ul>
@@ -153,24 +155,24 @@ widget:SetOnChange(&quot;method&quot;)
     <ul>
         <li><span class="parameter">father</span>
             <span class="types"><span class="type">frame</span></span>
-        Parent frame to use
+         Parent frame to use
         </li>
         <li><span class="parameter">current</span>
             <span class="types"><span class="type">bool</span></span>
-        Actual value
+         Actual value
         </li>
         <li><span class="parameter">message</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        String with description or table with .desc and .tooltip fields
+         String with description or table with .desc and .tooltip fields
         </li>
         <li><span class="parameter">tooltip</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Tooltip message (ignored if message is a table).Can be a table for a multiline tooltip
+         Tooltip message (ignored if message is a table).Can be a table for a multiline tooltip
          (<em>optional</em>)
         </li>
         <li><span class="parameter">maxwidth</span>
             <span class="types"><span class="type">number</span></span>
-        maximum widget width
+         maximum widget width
          (<em>optional</em>)
         </li>
     </ul>
@@ -191,35 +193,36 @@ widget:SetOnChange(&quot;method&quot;)
     <strong>factory:DropDown (father, current, list, message[, tooltip[, maxwidth]])</strong>
     </dt>
     <dd>
-    Creates a dropdown menu. Create a totally new frame in order to avoid taint
+    Creates a dropdown menu.
+ Create a totally new frame in order to avoid taint
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">father</span>
             <span class="types"><span class="type">frame</span></span>
-        Parent frame to use
+         Parent frame to use
         </li>
         <li><span class="parameter">current</span>
             <span class="types"><span class="type">mixed</span></span>
-        Initial value
+         Initial value
         </li>
         <li><span class="parameter">list</span>
             <span class="types"><span class="type">tab</span></span>
-        Option list
+         Option list
         </li>
         <li><span class="parameter">message</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        String with description or table with .desc and .tooltip fields
+         String with description or table with .desc and .tooltip fields
         </li>
         <li><span class="parameter">tooltip</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip
+         Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip
          (<em>optional</em>)
         </li>
         <li><span class="parameter">maxwidth</span>
             <span class="types"><span class="type">number</span></span>
-        maximum widget width
+         maximum widget width
          (<em>optional</em>)
         </li>
     </ul>
@@ -240,26 +243,27 @@ widget:SetOnChange(&quot;method&quot;)
     <strong>factory:Option (addon, father, flag[, maxwidth])</strong>
     </dt>
     <dd>
-    Quickly defines a widget for a defined configuration variable All data for the widget are inferred for the variable
+    Quickly defines a widget for a defined configuration variable
+ All data for the widget are inferred for the variable
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">addon</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        The addon wich defined the variable
+         The addon wich defined the variable
         </li>
         <li><span class="parameter">father</span>
             <span class="types"><span class="type">frame</span></span>
-        Parent frame to use
+         Parent frame to use
         </li>
         <li><span class="parameter">flag</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        name of the variable to use
+         name of the variable to use
         </li>
         <li><span class="parameter">maxwidth</span>
             <span class="types"><span class="type">number</span></span>
-        maximum widget width
+         maximum widget width
          (<em>optional</em>)
         </li>
     </ul>
@@ -281,32 +285,32 @@ widget:SetOnChange(&quot;method&quot;)
     <ul>
         <li><span class="parameter">father</span>
             <span class="types"><span class="type">frame</span></span>
-        Parent frame to use
+         Parent frame to use
         </li>
         <li><span class="parameter">min</span>
             <span class="types"><span class="type">number</span></span>
-        Minimum value
+         Minimum value
         </li>
         <li><span class="parameter">max</span>
             <span class="types"><span class="type">number</span></span>
-        Maximum value
+         Maximum value
         </li>
         <li><span class="parameter">current</span>
             <span class="types"><span class="type">number</span></span>
-        Actual value
+         Actual value
         </li>
         <li><span class="parameter">message</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        String with description or table with .desc and .tooltip fields
+         String with description or table with .desc and .tooltip fields
         </li>
         <li><span class="parameter">tooltip</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip
+         Tooltip message (ignored if message is a table). Can be a table for a multiline tooltip
          (<em>optional</em>)
         </li>
         <li><span class="parameter">maxwidth</span>
             <span class="types"><span class="type">number</span></span>
-        maximum widget width
+         maximum widget width
          (<em>optional</em>)
         </li>
     </ul>
@@ -329,7 +333,7 @@ widget:SetOnChange(&quot;method&quot;)
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-10-22 13:49:52 </i>
+<i style="float:right;">Last updated 2019-07-19 07:56:26 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

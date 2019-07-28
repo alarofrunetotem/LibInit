@@ -66,7 +66,7 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
     </ul>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Release</strong>: 46</li>
+        <li><strong>Release</strong>: 51</li>
         <li><strong>Author</strong>: Alar of Runetotem</li>
     </ul>
 
@@ -94,11 +94,16 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#lib:DelTable">lib:DelTable (tbl[, recursive=true])</a></td>
-	<td class="summary">Returns a table to the recycle pool Table will be wiped Only manages tables allocated via NewTable Other tables are left intact – Preferred usage is assigning to a local via wrap function</td>
+	<td class="summary">Returns a table to the recycle pool
+ Table will be wiped
+ Only manages tables allocated via NewTable
+ Other tables are left intact
+ -- Preferred usage is assigning to a local via wrap function</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:NewTable">lib:NewTable ([tbl=nil])</a></td>
-	<td class="summary">Get a new table from the recycle pool Preferred usage is assigning to a local via wrap function</td>
+	<td class="summary">Get a new table from the recycle pool
+ Preferred usage is assigning to a local via wrap function</td>
 	</tr>
 </table>
 <h2><a href="#Addon_management">Addon management </a></h2>
@@ -136,7 +141,7 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:Health">lib:Health (unit)</a></td>
-	<td class="summary">Returns unit’s health as a normalized percent value</td>
+	<td class="summary">Returns unit's health as a normalized percent value</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:Is">lib:Is (class, target)</a></td>
@@ -152,13 +157,13 @@ addon=LibStub(&quot;LibInit&quot;):newAddon(ns,me)
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:Parse">lib:Parse (msg, n)</a></td>
-	<td class="summary">Parses a command from chat or from an table options handjer command Internally calls AceConsole-3.0:GetArgs</td>
+	<td class="summary">Parses a command from chat or from an table options handjer command
+ Internally calls AceConsole-3.0:GetArgs</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:ScanBags">lib:ScanBags ([index=0[, value=0[, startbag=0[, startslot=1]]]])</a></td>
-	<td class="summary"><p>Scans Bags for an item based on different criteria</p>
-
-All parameters are optional.</td>
+	<td class="summary">Scans Bags for an item based on different criteria
+<p> All parameters are optional.</td>
 	</tr>
 </table>
 <h2><a href="#Configuration_panel">Configuration panel </a></h2>
@@ -169,7 +174,7 @@ All parameters are optional.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:Trigger">lib:Trigger (flag)</a></td>
-	<td class="summary">Simulates a configuration variable change.</td>
+	<td class="summary">Simulates a configuration  variable change.</td>
 	</tr>
 </table>
 <h2><a href="#Hooks">Hooks </a></h2>
@@ -188,7 +193,8 @@ All parameters are optional.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:GetKpairs">lib:GetKpairs ()</a></td>
-	<td class="summary">Returns kpairs implementation Deprecated in favour of Wrap(“Kpairs”)</td>
+	<td class="summary">Returns kpairs implementation
+ Deprecated in favour of Wrap("Kpairs")</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:LoadHelp">lib:LoadHelp ()</a></td>
@@ -216,13 +222,12 @@ All parameters are optional.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:Popup">lib:Popup (msg[, timeout=60[, OnAccept[, OnCancel[, data[, StopCasting]]]]])</a></td>
-	<td class="summary">Show a popup Display a popup message with Accept and optionally Cancel button</td>
+	<td class="summary">Show a popup
+ Display a popup message with Accept and optionally Cancel button</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:SetDbDefaults">lib:SetDbDefaults (tbl)</a></td>
-	<td class="summary"><p>Called with the db default table as argument</p>
-
-You can customize defaults here</td>
+	<td class="summary">Called with the db default table as argument</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:SetOptionsTable">lib:SetOptionsTable (tbl)</a></td>
@@ -233,15 +238,18 @@ You can customize defaults here</td>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#lib:NewDelayableTimer">lib:NewDelayableTimer (callback)</a></td>
-	<td class="summary">Delayable timers Create a timer that can be delayed.</td>
+	<td class="summary">Delayable timers
+ Create a timer that can be delayed.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:coroutineExecute">lib:coroutineExecute (interval, action[, combatSafe[, more]])</a></td>
-	<td class="summary">Generates and executes a coroutine with configurable interval and combat status If called for already running coroutine changes the interval and the combat status</td>
+	<td class="summary">Generates and executes a coroutine with configurable interval and combat status
+ If called for already running coroutine changes the interval and the combat status</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#lib:coroutineOnEnd">lib:coroutineOnEnd (signature, action[, ...])</a></td>
-	<td class="summary">Executes an action as soon as a coroutine exit Action can be executed immediately if coroutine is already dead</td>
+	<td class="summary">Executes an action as soon as a coroutine exit
+ Action can be executed immediately if coroutine is already dead</td>
 	</tr>
 </table>
 <h2><a href="#Automatic_events">Automatic events </a></h2>
@@ -323,7 +331,8 @@ You can customize defaults here</td>
     <h2 class="section-header has-description"><a name="Table_Recycling_System"></a>Table Recycling System </h2>
 
           <div class="section-description">
-          A set of functions to allow for table reusing
+
+<p> A set of functions to allow for table reusing
           </div>
             <h3>Usage:</h3>
             <pre class="example"><span class="comment">-- You better upvalue these functions
@@ -336,18 +345,22 @@ You can customize defaults here</td>
     <strong>lib:DelTable (tbl[, recursive=true])</strong>
     </dt>
     <dd>
-    Returns a table to the recycle pool Table will be wiped Only manages tables allocated via NewTable Other tables are left intact – Preferred usage is assigning to a local via wrap function
+    Returns a table to the recycle pool
+ Table will be wiped
+ Only manages tables allocated via NewTable
+ Other tables are left intact
+ -- Preferred usage is assigning to a local via wrap function
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">tbl</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        table to be recycled
+         table to be recycled
         </li>
         <li><span class="parameter">recursive</span>
             <span class="types"><span class="type">boolean</span></span>
-        If true, embedded tables added cia new table will be wiped and recycled
+         If true, embedded tables added cia new table will be wiped and recycled
          (<em>default</em> true)
         </li>
     </ul>
@@ -362,14 +375,15 @@ You can customize defaults here</td>
     <strong>lib:NewTable ([tbl=nil])</strong>
     </dt>
     <dd>
-    Get a new table from the recycle pool Preferred usage is assigning to a local via wrap function
+    Get a new table from the recycle pool
+ Preferred usage is assigning to a local via wrap function
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">tbl</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        Optional table which will be added to the pool after use. Must NOT have a metatable
+         Optional table which will be added to the pool after use. Must NOT have a metatable
          (<em>default</em> nil)
         </li>
     </ul>
@@ -404,47 +418,43 @@ del(t,<span class="keyword">true</span>) <span class="comment">-- will recycle b
     <strong>lib:NewAddon ([target], name[, options[, full[, ...]]])</strong>
     </dt>
     <dd>
-    <p>Create a new AceAddon-3.0 addon. </p>
+    Create a new AceAddon-3.0 addon.
+<p> Any library you specified will be embeded, and the addon will be scheduled for
+ its OnInitializee and OnEnabled callbacks.
+<p> The final addon object, with all libraries embeded, will be returned.
+<p> Options table format:
+<p>* profile: choose the initial profile (if omittete, uses a per character one)
+* noswitch: disables Ace profile managemente, user will not be able to change it
+* nogui: do not generate a gui for configuration
+* nohelp: do not generate help (actually, help generation is not yet implemented)
+* enhancedProfile: adds "Switch all profiles to default" and "Remove unused profiles" do Ace profile gui
 
-<p>Any library you specified will be embeded, and the addon will be scheduled for its OnInitializee and OnEnabled callbacks.</p>
-
-<p>The final addon object, with all libraries embeded, will be returned.</p>
-
-<p>Options table format:</p>
-
-<ul>
-<li>profile: choose the initial profile (if omittete, uses a per character one)</li>
-<li>noswitch: disables Ace profile managemente, user will not be able to change it</li>
-<li>nogui: do not generate a gui for configuration</li>
-<li>nohelp: do not generate help (actually, help generation is not yet implemented)</li>
-<li>enhancedProfile: adds “Switch all profiles to default” and “Remove unused profiles” do Ace profile gui</li>
-</ul>
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">target</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        to use as a base for the addon (optional)
+         to use as a base for the addon (optional)
          (<em>optional</em>)
         </li>
         <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Name of the addon object to create
+         Name of the addon object to create
         </li>
         <li><span class="parameter">options</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        options list
+         options list
          (<em>optional</em>)
         </li>
         <li><span class="parameter">full</span>
             <span class="types"><span class="type">bool</span></span>
-        If true, all available and embeddable Ace3 library are embedded
+         If true, all available and embeddable Ace3 library are embedded
          (<em>optional</em>)
         </li>
         <li><span class="parameter">...</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        List of libraries to embed into the addon
+         List of libraries to embed into the addon
          (<em>optional</em>)
         </li>
     </ul>
@@ -484,7 +494,7 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <ul>
         <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Method name
+         Method name
         </li>
     </ul>
 
@@ -507,7 +517,8 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <h2 class="section-header has-description"><a name="Generic"></a>Generic </h2>
 
           <div class="section-description">
-          General utilities
+
+ General utilities
           </div>
     <dl class="function">
     <dt>
@@ -522,11 +533,11 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <ul>
         <li><span class="parameter">stringa</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        A string
+         A string
         </li>
         <li><span class="parameter">colore</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Name of a color (red, rare, alliance and so on). If not existent uses yellow
+         Name of a color (red, rare, alliance and so on). If not existent uses yellow
         </li>
     </ul>
 
@@ -569,14 +580,15 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <strong>lib:GetChatFrame ([chat=DEFAULT_CHAT_FRAME])</strong>
     </dt>
     <dd>
-    Return a named chatframe. Returns nil if chat does not exist
+    Return a named chatframe.
+  Returns nil if chat does not exist
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">chat</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Chat name
+         Chat name
          (<em>default</em> DEFAULT_CHAT_FRAME)
         </li>
     </ul>
@@ -585,7 +597,7 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <ol>
 
            <span class="types"><span class="type">frame</span> or <span class="type">nil</span></span>
-        requested chat frame, can be nil if “chat” does not exist
+        requested chat frame, can be nil if "chat" does not exist
     </ol>
 
 
@@ -604,7 +616,7 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <ul>
         <li><span class="parameter">itemlink</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        A standard wow itemlink
+         A standard wow itemlink
         </li>
     </ul>
 
@@ -644,14 +656,14 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <strong>lib:Health (unit)</strong>
     </dt>
     <dd>
-    Returns unit’s health as a normalized percent value
+    Returns unit's health as a normalized percent value
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">unit</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        A standard unit name
+         A standard unit name
         </li>
     </ul>
 
@@ -678,11 +690,11 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <ul>
         <li><span class="parameter">class</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Requested Class
+         Requested Class
         </li>
         <li><span class="parameter">target</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Requested Unit (default ‘player’)
+         Requested Unit (default 'player')
         </li>
     </ul>
 
@@ -701,14 +713,16 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <strong>lib:NumericVersion ()</strong>
     </dt>
     <dd>
-    Returns a numeric representation of version. Can be overridden In default incarnation assumes that version is in the form x,y,z
+    Returns a numeric representation of version.
+ Can be overridden
+ In default incarnation assumes that version is in the form x,y,z
 
 
 
     <h3>Returns:</h3>
     <ol>
 
-        z+y<em>100+x</em>10000
+        z+y*100+x*10000
     </ol>
 
 
@@ -720,18 +734,19 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <strong>lib:OnLeaveCombat (action[, ...])</strong>
     </dt>
     <dd>
-    Executes an action as soon as combat restrictions lift. Action can be executed immediately if toon is out of combat
+    Executes an action as soon as combat restrictions lift.
+ Action can be executed immediately if toon is out of combat
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">action</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">func</span></span>
-        To be executed, Can be a function or a method name
+         To be executed, Can be a function or a method name
         </li>
         <li><span class="parameter">...</span>
             <span class="types"><span class="type">mixed</span></span>
-        More parameters will be directly passed to action
+         More parameters will be directly passed to action
          (<em>optional</em>)
         </li>
     </ul>
@@ -746,18 +761,19 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <strong>lib:Parse (msg, n)</strong>
     </dt>
     <dd>
-    Parses a command from chat or from an table options handjer command Internally calls AceConsole-3.0:GetArgs
+    Parses a command from chat or from an table options handjer command
+ Internally calls AceConsole-3.0:GetArgs
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">msg</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        Can be a string (when called from chat command) or a table (wbe called by Ace3 Options Table Handler)
+         Can be a string (when called from chat command) or a table (wbe called by Ace3 Options Table Handler)
         </li>
         <li><span class="parameter">n</span>
             <span class="types"><span class="type">number</span></span>
-        index in command list
+         index in command list
         </li>
     </ul>
 
@@ -776,35 +792,33 @@ LibStub(<span class="string">"LibInit"</span>):NewAddon(addon,myname)</pre>
     <strong>lib:ScanBags ([index=0[, value=0[, startbag=0[, startslot=1]]]])</strong>
     </dt>
     <dd>
-    <p>Scans Bags for an item based on different criteria</p>
+    Scans Bags for an item based on different criteria
+<p> All parameters are optional.
+<p> With no parameters ScanBags returns the first empty slot
+<p> Passing starbag and scanslot allows to continue scanning after the first finding
 
-<p>All parameters are optional. </p>
-
-<p>With no parameters ScanBags returns the first empty slot</p>
-
-Passing starbag and scanslot allows to continue scanning after the first finding
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">index</span>
             <span class="types"><span class="type">number</span></span>
-        index in GetItemInfo result. 0 is a special case to match just itemid
+         index in GetItemInfo result. 0 is a special case to match just itemid
          (<em>default</em> 0)
         </li>
         <li><span class="parameter">value</span>
             <span class="types"><span class="type">number</span></span>
-        value against to match. 0 is a special case for empty slot
+         value against to match. 0 is a special case for empty slot
          (<em>default</em> 0)
         </li>
         <li><span class="parameter">startbag</span>
             <span class="types"><span class="type">number</span></span>
-        Initialbag to start scan from
+         Initialbag to start scan from
          (<em>default</em> 0)
         </li>
         <li><span class="parameter">startslot</span>
             <span class="types"><span class="type">number</span></span>
-        Initial slot to start scan from
+         Initial slot to start scan from
          (<em>default</em> 1)
         </li>
     </ul>
@@ -822,7 +836,7 @@ Passing starbag and scanslot allows to continue scanning after the first finding
         slot</li>
         <li>
            <span class="types"><span class="type">list</span></span>
-        all return value from GetItemInfo called on <em>Itemid</em></li>
+        all return value from GetItemInfo called on _Itemid_</li>
     </ol>
      <h3>Or</h3>
     <ol>
@@ -839,7 +853,9 @@ Passing starbag and scanslot allows to continue scanning after the first finding
     <h2 class="section-header has-description"><a name="Configuration_panel"></a>Configuration panel </h2>
 
           <div class="section-description">
-          These functions allow to build a ACE option table which will be fed to AceConfigDialog:AddToBlizOptions
+
+ These functions allow to build a ACE option table which will be fed to
+ AceConfigDialog:AddToBlizOptions
           </div>
     <dl class="function">
     <dt>
@@ -854,7 +870,7 @@ Passing starbag and scanslot allows to continue scanning after the first finding
     <ul>
         <li><span class="parameter">flag</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        variable name
+         variable name
         </li>
         <li><span class="parameter">defaultvalue</span>
             <span class="types"><span class="type">any</span></span>
@@ -862,16 +878,16 @@ Passing starbag and scanslot allows to continue scanning after the first finding
         </li>
         <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        public name (appears in gui)
+         public name  (appears in gui)
         </li>
         <li><span class="parameter">description</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        long description (appears in tooltip)
+         long description (appears in tooltip)
          (<em>default</em> name)
         </li>
         <li><span class="parameter">icon</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        icon reference
+         icon reference
          (<em>optional</em>)
         </li>
     </ul>
@@ -892,16 +908,15 @@ Passing starbag and scanslot allows to continue scanning after the first finding
     <strong>lib:Trigger (flag)</strong>
     </dt>
     <dd>
-    <p>Simulates a configuration variable change. </p>
-
-Generates Apply* events if needed
+    Simulates a configuration  variable change.
+<p> Generates Apply* events if needed
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">flag</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Variable name
+         Variable name
         </li>
     </ul>
 
@@ -914,7 +929,8 @@ Generates Apply* events if needed
     <h2 class="section-header has-description"><a name="Hooks"></a>Hooks </h2>
 
           <div class="section-description">
-          Stub function you can (and should) overrid in your addon
+
+ Stub function you can (and should) overrid in your addon
           </div>
     <dl class="function">
     <dt>
@@ -929,7 +945,7 @@ Generates Apply* events if needed
     <ul>
         <li><span class="parameter">obj</span>
             <span class="types"><span class="type">any</span></span>
-        variable to be tested
+         variable to be tested
         </li>
     </ul>
 
@@ -996,7 +1012,8 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
     <strong>lib:GetKpairs ()</strong>
     </dt>
     <dd>
-    Returns kpairs implementation Deprecated in favour of Wrap(“Kpairs”)
+    Returns kpairs implementation
+ Deprecated in favour of Wrap("Kpairs")
 
 
 
@@ -1079,7 +1096,7 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
     <ul>
         <li><span class="parameter">first</span>
             <span class="types"><span class="type">bool</span></span>
-        True on the first activation
+         True on the first activation
          (<em>optional</em>)
         </li>
     </ul>
@@ -1108,38 +1125,40 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
     <strong>lib:Popup (msg[, timeout=60[, OnAccept[, OnCancel[, data[, StopCasting]]]]])</strong>
     </dt>
     <dd>
-    Show a popup Display a popup message with Accept and optionally Cancel button
+    Show a popup
+ Display a popup message with Accept and optionally Cancel button
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">msg</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Message to be shown
+         Message to be shown
         </li>
         <li><span class="parameter">timeout</span>
             <span class="types"><span class="type">number</span></span>
-        In seconds, if omitted assumes 60
+         In seconds, if omitted assumes 60
          (<em>default</em> 60)
         </li>
         <li><span class="parameter">OnAccept</span>
             <span class="types"><span class="type">func</span></span>
-        Executed when clicked on Accept
+         Executed when clicked on Accept
          (<em>optional</em>)
         </li>
         <li><span class="parameter">OnCancel</span>
             <span class="types"><span class="type">func</span></span>
-        Executed when clicked on Cancel (if nill, Cancel button is not shown)
+         Executed when clicked on Cancel (if nill, Cancel button is not shown)
          (<em>optional</em>)
         </li>
         <li><span class="parameter">data</span>
             <span class="types"><span class="type">mixed</span></span>
-        Passed to the callback function
+         Passed to the callback function
          (<em>optional</em>)
         </li>
         <li><span class="parameter">StopCasting</span>
             <span class="types"><span class="type">bool</span></span>
-        If true, when the popup appear will stop any running casting. Useful to ask confirmation before performing a programmatic initiated spellcasting
+         If true, when the popup appear will stop any running casting.
+ Useful to ask confirmation before performing a programmatic initiated spellcasting
          (<em>optional</em>)
         </li>
     </ul>
@@ -1154,16 +1173,15 @@ C.Azure.c <span class="comment">--returns a string "rrggbb"
     <strong>lib:SetDbDefaults (tbl)</strong>
     </dt>
     <dd>
-    <p>Called with the db default table as argument</p>
+    Called with the db default table as argument  You can customize defaults here
 
-You can customize defaults here
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">tbl</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        ACE DB default table
+         ACE DB default table
         </li>
     </ul>
 
@@ -1177,14 +1195,14 @@ You can customize defaults here
     <strong>lib:SetOptionsTable (tbl)</strong>
     </dt>
     <dd>
-    Called with the current option table You can change the default options table here
+    Called with the current option table  You can change the default options table here
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">tbl</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        ACE Options Table
+         ACE Options Table
         </li>
     </ul>
 
@@ -1197,7 +1215,8 @@ You can customize defaults here
     <h2 class="section-header has-description"><a name="Coroutines"></a>Coroutines </h2>
 
           <div class="section-description">
-          Methods to manage coroutines
+
+ Methods to manage coroutines
           </div>
     <dl class="function">
     <dt>
@@ -1205,14 +1224,16 @@ You can customize defaults here
     <strong>lib:NewDelayableTimer (callback)</strong>
     </dt>
     <dd>
-    Delayable timers Create a timer that can be delayed. Useful for example for throttling sliders’ events This function just create the timer, to start (or delay) it use the :Start(seconds) method
+    Delayable timers
+ Create a timer that can be delayed.  Useful for example for throttling sliders' events
+ This function just create the timer, to start (or delay) it use the :Start(seconds) method
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">callback</span>
             <span class="types"><span class="type">function</span></span>
-        Function to be called at expire time
+         Function to be called at expire time
         </li>
     </ul>
 
@@ -1232,27 +1253,28 @@ You can customize defaults here
     <strong>lib:coroutineExecute (interval, action[, combatSafe[, more]])</strong>
     </dt>
     <dd>
-    Generates and executes a coroutine with configurable interval and combat status If called for already running coroutine changes the interval and the combat status
+    Generates and executes a coroutine with configurable interval and combat status
+ If called for already running coroutine changes the interval and the combat status
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">interval</span>
             <span class="types"><span class="type">number</span></span>
-        between steps
+         between steps
         </li>
         <li><span class="parameter">action</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">function</span></span>
-        To be executed, Can be a function or a method name
+         To be executed, Can be a function or a method name
         </li>
         <li><span class="parameter">combatSafe</span>
             <span class="types"><span class="type">bool</span></span>
-        keep running in combat
+         keep running in combat
          (<em>optional</em>)
         </li>
         <li><span class="parameter">more</span>
             <span class="types"><span class="type">mixed</span></span>
-        parameter are passed to function
+         parameter are passed to function
          (<em>optional</em>)
         </li>
     </ul>
@@ -1273,22 +1295,23 @@ You can customize defaults here
     <strong>lib:coroutineOnEnd (signature, action[, ...])</strong>
     </dt>
     <dd>
-    Executes an action as soon as a coroutine exit Action can be executed immediately if coroutine is already dead
+    Executes an action as soon as a coroutine exit
+ Action can be executed immediately if coroutine is already dead
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">signature</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Coroutine indentifier as returined by coroutineExecute
+         Coroutine indentifier as returined by coroutineExecute
         </li>
         <li><span class="parameter">action</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">function</span></span>
-        To be executed, Can be a function or a method name
+         To be executed, Can be a function or a method name
         </li>
         <li><span class="parameter">...</span>
             <span class="types"><span class="type">mixed</span></span>
-        More parameters will be directly passed to action
+         More parameters will be directly passed to action
          (<em>optional</em>)
         </li>
     </ul>
@@ -1302,7 +1325,10 @@ You can customize defaults here
     <h2 class="section-header has-description"><a name="Automatic_events"></a>Automatic events </h2>
 
           <div class="section-description">
-          You can have automatic events creating methods with the name EvtEVENTNAME For example in order to manage the event ADDON_LOADED you can just define a EvtADDON_LOADED method
+
+  You can have automatic events creating methods with the name EvtEVENTNAME
+  For example in order to manage the event ADDON\_LOADED you can just define
+  a EvtADDON\_LOADED method
           </div>
             <h3>Usage:</h3>
             <pre class="example"><span class="keyword">function</span> addon:EvtADDON_LOADED(event,addonname)
@@ -1319,7 +1345,9 @@ self:StopAutomaticEvents()
     <strong>lib:StartAutomaticEvents ()</strong>
     </dt>
     <dd>
-    Starts all automatic events. Automatic events are the one for which exists and EvtEVENTNAME method
+    Starts all automatic events.
+ Automatic events are the one for which exists and EvtEVENTNAME method
+
 
 
 
@@ -1333,14 +1361,15 @@ self:StopAutomaticEvents()
     <strong>lib:StopAutomaticEvents ([ignore])</strong>
     </dt>
     <dd>
-    Stops all automatic events. Automatic events are the one for which exists and EvtEVENTNAME method
+    Stops all automatic events.
+ Automatic events are the one for which exists and EvtEVENTNAME method
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">ignore</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        Name of an event method not to be stopped
+         Name of an event method not to be stopped
          (<em>optional</em>)
         </li>
     </ul>
@@ -1351,8 +1380,7 @@ self:StopAutomaticEvents()
     <h3>Usage:</h3>
     <ul>
         <pre class="example">self:StopAutomaticEvents(<span class="string">"ADDON_LOADED"</span>)
-<span class="comment">-- Will stop all events but ADDON_LOADED
-</span></pre>
+<span class="comment">-- Will stop all events but ADDON_LOADED</span></pre>
     </ul>
 
 </dd>
@@ -1363,7 +1391,7 @@ self:StopAutomaticEvents()
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-10-22 13:49:52 </i>
+<i style="float:right;">Last updated 2019-07-19 07:56:26 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
