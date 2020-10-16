@@ -42,7 +42,7 @@ local tostring=tostring
 local tremove=tremove
 local _G=_G -- Unmodified env
 --@debug@
--- Checking packager behaviour
+-- Should not appear
 --@end-debug@
 --@do-not-package@
 -- THIS SHOULD NOT APPEAR
