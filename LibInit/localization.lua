@@ -156,6 +156,7 @@ L["UseDefault2"] = "Utiliza los perfiles de la \"%s\" para todos sus caracteres"
 end
 L=l:NewLocale(me,'zhTW')
 if L then
+--@localization(locale="itIT", format="lua_additive_table", same-key-is-true=true, handle-unlocalized="english" )@
 L["Configuration"] = "\231\181\132\230\133\139\239\188\140"
 L["Description"] = "\230\143\143\232\191\176\239\188\140"
 L["Libraries"] = "\229\156\150\230\155\184\233\164\168\239\188\140"
