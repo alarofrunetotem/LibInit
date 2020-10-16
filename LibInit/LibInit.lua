@@ -44,7 +44,9 @@ local _G=_G -- Unmodified env
 --@debug@
 -- Checking packager behaviour
 --@end-debug@
-
+--@do-not-package@
+-- THIS SHOULD NOT APPEAR
+--@end-do-not-package@
 local lib=obj --#Lib
 function lib:Info()
 	print(MAJOR_VERSION,MINOR_VERSION,' loaded from ',__FILE__)
