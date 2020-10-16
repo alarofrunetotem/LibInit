@@ -1,5 +1,5 @@
 #!/bin/bash
-release=Release-r1214
+release=Release-r1241
 #source=svn://svn.wowace.com/wow/ace3/mainline/tags/$release
 source=https://repos.wowace.com/wow/ace3/tags/$release
 mkdir -p LibInit/Ace3

@@ -7,15 +7,15 @@ externals:
     tag: latest
 
 ignore:
-- luac.out
-- doc.txt
-- ace.sh
-- localize.sh
-- doc.sh
-- docs
-- Test.lua
-- config.ld
-- .buildpath
-- .project
-- .settings 
-- newlocale.lua
+  - luac.out
+  - doc.txt
+  - ace.sh
+  - localize.sh
+  - doc.sh
+  - docs
+  - Test.lua
+  - config.ld
+  - .buildpath
+  - .project
+  - .settings 
+  - newlocale.lua

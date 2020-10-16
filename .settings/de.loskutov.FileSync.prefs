@@ -1,5 +1,5 @@
 WARNING=DO NOT MODIFY THIS FILE IF YOU DON'T UNDERSTAND
-defaultDestination=/home/giovanni/AddOns/LibInit
+defaultDestination=D\:/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns/LibInit
 defaultVariables=
 eclipse.preferences.version=1
 includeTeamPrivateFiles=false
