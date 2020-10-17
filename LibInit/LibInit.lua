@@ -416,7 +416,7 @@ end
 --  @tparam integer id Mission ID
 --  @treturn list location,xp,environment,environmentDesc,environmentTexture,locTextureKit,isExhausting,enemies
 function lib:GetMissionInfo(id)
-  local t=G.GetMissionDeploymentInfo(id)
+  local t=C_Garrison.GetMissionDeploymentInfo(id)
   return
     t.location,
     t.xp,
