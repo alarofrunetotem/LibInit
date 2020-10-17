@@ -1,5 +1,5 @@
 --- Main methods directly available in your addon
--- @classmod lib
+-- @module lib
 -- @author Alar of Runetotem
 -- @release 53
 -- @set sort=true
@@ -11,7 +11,7 @@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 53
+local MINOR_VERSION = 54
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()
@@ -408,6 +408,53 @@ function lib:NewSubModule(name,...)
 end
 function lib:NewSubClass(name)
 	return self:NewSubModule(name,self)
+end
+
+--- Compatibility: Emulates removed C_Garrison.GetMissionInfo
+-- @param #int id Mission id
+--   @return
+--    t.location,
+--    t.xp,
+--    t.environment,
+--    t.environmentDesc,
+--    t.environmentTexture,
+--    t.locTextureKit,
+--    t.isExhausting,
+--    t.enemies
+function lib:GetMissionInfo(id)
+  local t=G.GetMissionDeploymentInfo(id)
+  return
+    t.location,
+    t.xp,
+    t.environment,
+    t.environmentDesc,
+    t.environmentTexture,
+    t.locTextureKit,
+    t.isExhausting,
+    t.enemies
+end
+--- Compatibility: Emulates renamed and modified GetCurrencyInfo
+--  @param #int id Currency identifier
+--  @return
+--    t.name,
+--    t.quantity,
+--    t.iconFiledID,
+--    t.quantityEarnedThisWeek,
+--    t.maxWeeklyQuantiti,
+--    t.maxQuantity,
+--    t.discovered,
+--    t.quality
+function lib:GetCurrencyInfo(id)
+  local t=C_CurrencyInfo.GetCurrencyInfo(id)
+  return
+    t.name,
+    t.quantity,
+    t.iconFiledID,
+    t.quantityEarnedThisWeek,
+    t.maxWeeklyQuantiti,
+    t.maxQuantity,
+    t.discovered,
+    t.quality
 end
 
 --- Returns a closure to call a method as simple local function
