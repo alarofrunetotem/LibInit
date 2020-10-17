@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 54
+-- @release 55
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 54
+local MINOR_VERSION = 55
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()
@@ -435,7 +435,7 @@ function lib:GetCurrencyInfo(id)
   return
     t.name,
     t.quantity,
-    t.iconFiledID,
+    t.iconFileID,
     t.quantityEarnedThisWeek,
     t.maxWeeklyQuantiti,
     t.maxQuantity,
