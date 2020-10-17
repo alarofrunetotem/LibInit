@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 53
+-- @release 54
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -409,18 +409,12 @@ end
 function lib:NewSubClass(name)
 	return self:NewSubModule(name,self)
 end
+--- Compatibility
+-- @section compatibility
 
 --- Compatibility: Emulates removed C_Garrison.GetMissionInfo
--- @param #int id Mission id
---   @return
---    t.location,
---    t.xp,
---    t.environment,
---    t.environmentDesc,
---    t.environmentTexture,
---    t.locTextureKit,
---    t.isExhausting,
---    t.enemies
+--  @tparam integer id Mission ID
+--  @treturn list location,xp,environment,environmentDesc,environmentTexture,locTextureKit,isExhausting,enemies
 function lib:GetMissionInfo(id)
   local t=G.GetMissionDeploymentInfo(id)
   return
@@ -434,16 +428,8 @@ function lib:GetMissionInfo(id)
     t.enemies
 end
 --- Compatibility: Emulates renamed and modified GetCurrencyInfo
---  @param #int id Currency identifier
---  @return
---    t.name,
---    t.quantity,
---    t.iconFiledID,
---    t.quantityEarnedThisWeek,
---    t.maxWeeklyQuantiti,
---    t.maxQuantity,
---    t.discovered,
---    t.quality
+--  @tparam integer id Currency identifier
+--  @treturn list name,quantity,iconFiledID,quantityEarnedThisWeek,maxWeeklyQuantiti,maxQuantity,discovered,quality
 function lib:GetCurrencyInfo(id)
   local t=C_CurrencyInfo.GetCurrencyInfo(id)
   return
