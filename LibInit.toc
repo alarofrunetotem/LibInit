@@ -1,8 +1,8 @@
-## Interface: 90001
+## Interface: 90002
 ## Title: LibInit
 ## Notes: Makes using ACE 3 libraries even easier
 ## Author: Alar of Daggerspine
-## Version: @project-version@ 90001
+## Version: @project-version@ 90002
 ## X-Revision: @project-abbreviated-hash@
 ## eMail: alar@aspide.it
 ## URL: http://wow.aspide.it
