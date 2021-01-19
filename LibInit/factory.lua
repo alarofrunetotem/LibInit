@@ -433,12 +433,35 @@ do
     self._WIDGETS[name]=o
     if self:GetHeight() < self._TOP then self:SetHeight(self._TOP) end
   end
---- Quicly create an option pane
+--- Quickly creates an option panel
 -- Add widgets whith addChild method
 -- @tparam frame father Parent frame to use
 -- @tparam[opt] boolean!table movable true for movabke or a table witl listf attributes default false
 -- @tparam[opt] number columns defailt 1
--- @tparam[opt] number width defauld 1 (rezized to biggest child)
+-- @tparam[opt] number width defauld 1 (panel will be resized to biggest child)
+-- @usage
+--      local factory=self:GetFactory()
+--      local t=factory:Panel(parentFrame,false)
+--      t:ClearAllPoints()
+--      local x,y=0,-23
+--      t:SetPoint("TOPLEFT",x,y)
+--      t:SetPoint("TOPRIGHT",x,y)
+--      t:SetPoint("BOTTOMLEFT")
+--      t:SetPoint("BOTTOMRIGHT")
+--      t:AddChild('c',factory:DropDown(t,'DEMONHUNTER',classes,CLASS,CHOOSE .. ' ' .. CLASS))
+--      t:AddChild('l',factory:Slider(t,1,maxLevel,maxLevel,LEVEL,CHOOSE .. ' ' .. LEVEL))
+--      t:AddChild('f',factory:DropDown(t,thisFaction,factions,CHOOSE .. ' ' .. FACTION))
+--      t:AddChild('p1',factory:DropDown(t,UNKNOWN,professions,PROFESSIONS_FIRST_PROFESSION,CHOOSE .. ' ' .. PROFESSIONS_FIRST_PROFESSION))
+--      t:AddChild('p2',factory:DropDown(t,UNKNOWN,professions,PROFESSIONS_SECOND_PROFESSION,CHOOSE .. ' ' .. PROFESSIONS_SECOND_PROFESSION))
+--      t:AddChild('a',factory:Checkbox(t,false,ITEM_ACCOUNTBOUND,L["This toon can receive Account Bound items"]))
+--      t:AddChild('b',factory:Button(t,SAVE))
+--      -- Add an onchange function to the button
+--      t:SetOnChange('b',function(self,value)
+--        -- father is tyhe panel widget
+--        local answer=self.father:GetValue()
+--        -- answer is an object wich contains the currenv value of eery wuidget indexed bty its handle (first parameter to addchild)
+--        t:Hide()
+--      end)
   function factory:Panel(father,movable,columns,width)
     local template = "BasicFrameTemplateWithInset"
     columns=columns or 1
@@ -479,4 +502,5 @@ do
 end
 libinit:_SetFactory(factory)
 
-
+-- @section Panel
+-- @method AddChild(handle,widget)
