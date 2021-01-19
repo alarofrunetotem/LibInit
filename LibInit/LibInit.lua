@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 62
+-- @release 64
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 62
+local MINOR_VERSION = 64
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()
@@ -114,6 +114,7 @@ local AceConfigDialog=LibStub("AceConfigDialog-3.0",true)
 local AceGUI=LibStub("AceGUI-3.0",true)
 local Ace=LibStub("AceAddon-3.0")
 local AceLocale=LibStub("AceLocale-3.0",true)
+local AceConsole=LibStub("AceConsole-3.0",true)
 local AceDB  = LibStub("AceDB-3.0",true)
 
 
@@ -230,7 +231,7 @@ end
 -- Other tables are left intact
 -- -- Preferred usage is assigning to a local via wrap function
 -- @tparam table tbl table to be recycled
--- @tparam[opt=true] boolean recursive If true, embedded tables added cia new table will be wiped and recycled
+-- @tparam[opt=true] boolean recursive If true, embedded tables added via new table will be wiped and recycled
 --
 function lib:DelTable(tbl,recursive)
 	if type(recursive)=="nil" then recursive=true end
@@ -432,6 +433,12 @@ function lib:GetAddon(name)
 end
 function lib:GetLocale()
 	return AceLocale:GetLocale(self.name)
+end
+function lib:Notice(...)
+  if not self.db.silent then AceConsole:Print("|cff909090"..tostring( self ).."|r:",...) end
+end
+function lib:Debug(...)
+  if not self.db.silent and self.db.debug then AceConsole:Print("|cffff9900"..tostring( self ).."|r:",...) end
 end
 
 --- Generic.
@@ -1994,7 +2001,7 @@ local StaticPopup_Show=StaticPopup_Show
 -- @tparam string msg Message to be shown
 -- @tparam[opt=60] number timeout In seconds, if omitted assumes 60
 -- @tparam[opt] func OnAccept Executed when clicked on Accept
--- @tparam[opt] func OnCancel Executed when clicked on Cancel (if nill, Cancel button is not shown)
+-- @tparam[opt] func OnCancel Executed when clicked on Cancel (if nil, Cancel button is not shown)
 -- @tparam[opt] mixed data Passed to the callback function
 -- @tparam[opt] bool StopCasting If true, when the popup appear will stop any running casting.
 -- Useful to ask confirmation before performing a programmatic initiated spellcasting
