@@ -88,9 +88,18 @@ widget:SetOnChange(&quot;method&quot;)
 	<td class="summary">Creates a dropdown menu.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#factory:Label">factory:Label (father, text[, color])</a></td>
+	<td class="summary">Creates a laben</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#factory:Option">factory:Option (addon, father, flag[, maxwidth])</a></td>
 	<td class="summary">Quickly defines a widget for a defined configuration variable
  All data for the widget are inferred for the variable</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#factory:Panel">factory:Panel (father[, movable[, columns[, width]]])</a></td>
+	<td class="summary">Quickly creates an option panel
+ Add widgets whith addChild method</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#factory:Slider">factory:Slider (father, min, max, current, message[, tooltip[, maxwidth]])</a></td>
@@ -242,6 +251,42 @@ widget:SetOnChange(&quot;method&quot;)
 
 </dd>
     <dt>
+    <a name = "factory:Label"></a>
+    <strong>factory:Label (father, text[, color])</strong>
+    </dt>
+    <dd>
+    Creates a laben
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">father</span>
+            <span class="types"><span class="type">frame</span></span>
+         Parent frame to use
+        </li>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         String with description
+        </li>
+        <li><span class="parameter">color</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         name (passed to colorize) defaults to yellow
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">widget</span></span>
+        label widget object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
     <a name = "factory:Option"></a>
     <strong>factory:Option (addon, father, flag[, maxwidth])</strong>
     </dt>
@@ -274,6 +319,68 @@ widget:SetOnChange(&quot;method&quot;)
 
 
 
+
+</dd>
+    <dt>
+    <a name = "factory:Panel"></a>
+    <strong>factory:Panel (father[, movable[, columns[, width]]])</strong>
+    </dt>
+    <dd>
+    Quickly creates an option panel
+ Add widgets whith addChild method
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">father</span>
+            <span class="types"><span class="type">frame</span></span>
+         Parent frame to use
+        </li>
+        <li><span class="parameter">movable</span>
+            <span class="types"><span class="type">boolean!table</span></span>
+         true for movabke or a table witl listf attributes default false
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">columns</span>
+            <span class="types"><span class="type">number</span></span>
+         defailt 1
+         (<em>optional</em>)
+        </li>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">number</span></span>
+         defauld 1 (panel will be resized to biggest child)
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="keyword">local</span> factory=self:GetFactory()
+<span class="keyword">local</span> t=factory:Panel(parentFrame,<span class="keyword">false</span>)
+t:ClearAllPoints()
+<span class="keyword">local</span> x,y=<span class="number">0</span>,-<span class="number">23</span>
+t:SetPoint(<span class="string">"TOPLEFT"</span>,x,y)
+t:SetPoint(<span class="string">"TOPRIGHT"</span>,x,y)
+t:SetPoint(<span class="string">"BOTTOMLEFT"</span>)
+t:SetPoint(<span class="string">"BOTTOMRIGHT"</span>)
+t:AddChild(<span class="string">'c'</span>,factory:DropDown(t,<span class="string">'DEMONHUNTER'</span>,classes,CLASS,CHOOSE .. <span class="string">' '</span> .. CLASS))
+t:AddChild(<span class="string">'l'</span>,factory:Slider(t,<span class="number">1</span>,maxLevel,maxLevel,LEVEL,CHOOSE .. <span class="string">' '</span> .. LEVEL))
+t:AddChild(<span class="string">'f'</span>,factory:DropDown(t,thisFaction,factions,CHOOSE .. <span class="string">' '</span> .. FACTION))
+t:AddChild(<span class="string">'p1'</span>,factory:DropDown(t,UNKNOWN,professions,PROFESSIONS_FIRST_PROFESSION,CHOOSE .. <span class="string">' '</span> .. PROFESSIONS_FIRST_PROFESSION))
+t:AddChild(<span class="string">'p2'</span>,factory:DropDown(t,UNKNOWN,professions,PROFESSIONS_SECOND_PROFESSION,CHOOSE .. <span class="string">' '</span> .. PROFESSIONS_SECOND_PROFESSION))
+t:AddChild(<span class="string">'a'</span>,factory:Checkbox(t,<span class="keyword">false</span>,ITEM_ACCOUNTBOUND,L[<span class="string">"This toon can receive Account Bound items"</span>]))
+t:AddChild(<span class="string">'b'</span>,factory:Button(t,SAVE))
+<span class="comment">-- Add an onchange function to the button
+</span>t:SetOnChange(<span class="string">'b'</span>,<span class="keyword">function</span>(self,value)
+  <span class="comment">-- father is tyhe panel widget
+</span>  <span class="keyword">local</span> answer=self.father:GetValue()
+  <span class="comment">-- answer is an object wich contains the currenv value of eery wuidget indexed bty its handle (first parameter to addchild)
+</span>  t:Hide()
+<span class="keyword">end</span>)</pre>
+    </ul>
 
 </dd>
     <dt>
@@ -336,7 +443,7 @@ widget:SetOnChange(&quot;method&quot;)
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2020-10-17 18:33:04 </i>
+<i style="float:right;">Last updated 2021-01-19 12:33:13 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
