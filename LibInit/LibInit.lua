@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 64
+-- @release 65
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 64
+local MINOR_VERSION = 65
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()
@@ -98,6 +98,7 @@ local select=select
 local coroutine=coroutine
 local cachedGetItemInfo
 local toc=select(4,GetBuildInfo())
+local ISCLASSIC=toc < 90000
 
 --]]
 -- Help sections
@@ -135,6 +136,18 @@ lib.pool=lib.pool or setmetatable({},{__mode="k",__tostring=function(t) return "
 --
 lib.mixins=lib.mixins or {}
 wipe(lib.mixins)
+local function ParseDebugStack(stack)
+  -- debugstack seems to truncate long file names, so if we don't get a match, we'll try removing some of the bits we're trying to match with.
+  --if not file then file, line = stack:match("AddOns[\\//]([/\\%w_]*%.[Ll][Uu][Aa]):(%d-):") end -- First Interface/
+  --if not file then file, line = stack:match("[\\//]([/\\%w_]*%.[Ll][Uu][Aa]):(%d-):") end  -- Then Interface/AddOns/
+  --file=nil
+  -- local regexp="@Interface[\\/]AddOns[\\/]([%w_]*)[\\/]([%w_\\/]*)\"%]:(%d-):"
+  local regexp="@Interface[\\/]AddOns[\\/]([^\\/]*)[\\/]([%w_\\/]*)[^:]+:(%d-):"
+  local addon,file, line = stack:match(regexp)
+  addon=addon or 'unknown'
+  return file or '*',line or 0
+end
+
 -- Recycling function from ACE3
 
 --- Table Recycling System.
@@ -435,10 +448,13 @@ function lib:GetLocale()
 	return AceLocale:GetLocale(self.name)
 end
 function lib:Notice(...)
-  if not self.db.silent then AceConsole:Print("|cff909090"..tostring( self ).."|r:",...) end
+  if self.db and not self.db.silent then AceConsole:Print("|cff909090"..tostring( self ).."|r:",...) end
 end
 function lib:Debug(...)
-  if not self.db.silent and self.db.debug then AceConsole:Print("|cffff9900"..tostring( self ).."|r:",...) end
+  if self.debug then
+    local header=format("|cffff9900%s|r|cffc0c0c0[%s:%d]|r",tostring(self),ParseDebugStack(debugstack(2,1,0)))
+    AceConsole:Print(header,...)
+  end
 end
 
 --- Generic.
