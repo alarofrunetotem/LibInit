@@ -373,7 +373,7 @@ function factory:Option(addon,father,flag,maxwidth)
 	if not info then error("factory:Option() Not existent " ..flag,2) end
 	local f=father
 	local w
-	local tipo=info.type:tolower()
+	local tipo=strlower(info.type)
 	info.maxwidth=maxwidth
 	if (tipo=="toggle" or tipo =="checkbox") then
 		w=self:Checkbox(f,addon:ToggleGet(flag,tipo),info)
