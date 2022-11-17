@@ -75,8 +75,9 @@ local GetTime = GetTime
 local gcinfo = gcinfo
 local unpack = unpack
 local geterrorhandler = geterrorhandler
-local GetContainerNumSlots=GetContainerNumSlots
-local GetContainerItemID=GetContainerItemID
+local GetContainerNumSlots=C_Container.GetContainerNumSlots
+local GetContainerItemLink=C_Container.GetContainerItemLink
+local GetContainerItemInfo=C_Container.GetContainerItemInfo
 local GetItemInfo=GetItemInfo
 local UnitHealth=UnitHealth
 local UnitHealthMax=UnitHealthMax
@@ -2299,4 +2300,3 @@ end
 for target,_ in pairs(lib.mixinTargets) do
 	lib:Embed(target)
 end
-
