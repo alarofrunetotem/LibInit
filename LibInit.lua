@@ -2,7 +2,7 @@
 -- This file intentionally blank for non internal release
 --@do-not-package@
 local core=LibStub("LibInit"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
-AlarDbg=true
+AlarDbg=true 
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
 if LibDebug then
