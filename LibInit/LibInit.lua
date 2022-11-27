@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 70
+-- @release 71
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -14,7 +14,7 @@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 70
+local MINOR_VERSION = 71
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()
@@ -78,8 +78,10 @@ local GetTime = GetTime
 local gcinfo = gcinfo
 local unpack = unpack
 local geterrorhandler = geterrorhandler
-local GetContainerNumSlots=GetContainerNumSlots
-local GetContainerItemID=GetContainerItemID
+local GetContainerNumSlots=C_Container.GetContainerNumSlots
+local GetContainerItemID=C_Container.GetContainerItemID
+local GetContainerItemLink=C_Container.GetContainerItemLink
+local GetContainerNumFreeSlots=C_Container.GetContainerNumFreeSlots
 local GetItemInfo=GetItemInfo
 local UnitHealth=UnitHealth
 local UnitHealthMax=UnitHealthMax
@@ -1873,7 +1875,7 @@ end
 -- Anything I define here is immediately available to newAddon method and in addon right after creation
 function lib:Embed(target)
 	-- All methods are pulled in via metatable in order to not pollute addon table
-	local mt=getmetatable(target)
+	local mt=getmetatable(target)  
 	if not mt then mt={__tostring=function(me) return me.name end} end
 	mt.__index=lib.mixins
 	setmetatable(target,mt)
