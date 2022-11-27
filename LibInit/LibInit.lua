@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 68
+-- @release 69
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -11,7 +11,7 @@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 68
+local MINOR_VERSION = 69
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()
@@ -1002,10 +1002,11 @@ function lib:OnInitialize(...)
 	end
 	if (type(self.LoadHelp)=="function") then self:LoadHelp() end
 	local main=options.name
+  local _
 	BuildHelp(self)
 	if AceConfig and not options.nogui then
 		AceConfig:RegisterOptionsTable(main,self.OptionsTable,{main,strlower(options.ID)})
-		self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
+		_,self.CfgDlg=AceConfigDialog:AddToBlizOptions(main,main )
 		if (not ignoreProfile and not options.noswitch) then
 			if (AceDBOptions) then
 				local profileOpts=AceDBOptions:GetOptionsTable(self.db)
@@ -1034,7 +1035,7 @@ function lib:OnInitialize(...)
 		self.OptionsTable.args.gui=nil
 	end
 	if (self.help[RELNOTES]~='') then
-		self.CfgRel=AceConfigDialog:AddToBlizOptions(main..RELNOTES,titles.RELNOTES,main)
+		_,self.CfgRel=AceConfigDialog:AddToBlizOptions(main..RELNOTES,titles.RELNOTES,main)
 	end
 	if AceDB then
 		self:UpdateVersion()
@@ -1784,27 +1785,26 @@ local function _GetMethod(target,prefix,func)
 			return "_" .. prefix
 	end
 end
-
-local neveropened=true
+local neveropened=false
 function lib:Gui(info)
 	if (AceConfigDialog and AceGUI) then
-		if (neveropened) then
-			InterfaceAddOnsList_Update()
-			neveropened=false
-		end
-		InterfaceOptionsFrame_OpenToCategory(self.CfgDlg)
+		Settings.OpenToCategory(self.CfgDlg)
+    if neveropened then
+      Settings.OpenToCategory(self.CfgDlg)
+      neveropened=false
+    end
 	else
 		self:Print("No GUI available")
 	end
 end
-
 function lib:Help(info)
 	if (AceConfigDialog and AceGUI) then
-		if (neveropened) then
-			InterfaceAddOnsList_Update()
-			neveropened=false
-		end
-		InterfaceOptionsFrame_OpenToCategory(self.CfgRel)
+    self:Print("Opening help")
+		Settings.OpenToCategory(self.CfgRel)
+    if neveropened then
+      Settings.OpenToCategory(self.CfgRel)
+      neveropened=false
+    end
 	else
 		self:Print("No GUI available")
 	end
