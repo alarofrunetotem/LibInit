@@ -1,17 +1,20 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 69
+-- @release 70
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
 -- local me,ns=... -- Wow engine passes you your addon name and a private table to use
 -- addon=LibStub("LibInit"):newAddon(ns,me)
 -- -- Since now, all LibInit methods are available on self
+--@debug@
+-- Check
+--@end-debug@
 local me, ns = ...
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):12:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 69
+local MINOR_VERSION = 70
 local LibStub=LibStub
 local dprint=function() end
 local encapsulate  = function ()

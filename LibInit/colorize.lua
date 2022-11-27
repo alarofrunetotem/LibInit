@@ -147,7 +147,6 @@ setmetatable(lib.colors,
 		end
 		if (not color) then color=rawget(table,key) or table.default end
 		rawset(table,okey,color)
-    print("main meta")
 		return color
 	end
 }
@@ -177,7 +176,6 @@ local mt={
 				return tostring(t1) .. tostring(t2)
 		end,
 		__call=function(table,...)
-      print("mt call")
 				return table[1],table[2],table[3]
 		end
 
