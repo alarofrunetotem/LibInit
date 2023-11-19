@@ -1,5 +1,5 @@
 #!/bin/bash
-release=Release-r1294
+release=Release-r1309
 #release=r1297-alpha
 #source=svn://svn.wowace.com/wow/ace3/mainline/tags/$release
 source=https://repos.wowace.com/wow/ace3/tags/$release
