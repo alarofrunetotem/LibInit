@@ -3,8 +3,8 @@
 --@do-not-package@
 local core=LibStub("LibInit"):NewAddon('LibinitCoreUtils',"AceConsole-3.0") --#Core
 AlarDbg=true 
-LoadAddOn("Blizzard_DebugTools")
-LoadAddOn("LibDebug")
+C_AddOns.LoadAddOn("Blizzard_DebugTools")
+C_AddOns.LoadAddOn("LibDebug")
 if LibDebug then
 	LibDebug()
 else

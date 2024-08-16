@@ -1,4 +1,4 @@
-## Interface: 100206
+## Interface: 110000,110002
 ## Title: LibInit
 ## Notes: Makes using ACE 3 libraries even easier
 ## Author: Alar of Daggerspine
