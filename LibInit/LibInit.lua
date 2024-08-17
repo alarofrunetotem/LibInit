@@ -489,6 +489,7 @@ if not lib.CombatScheduler then
 			wipe(lib.CombatScheduler.insertQueue) -- hackish, depends on internal callbackhanlder implementation
 		end
 		wipe(lib.CombatScheduler.events)
+---@diagnostic disable-next-line: inject-field
 		lib.CombatScheduler.recurse=0
 		for _,c in pairs(lib.coroutines) do
 			if c.waiting then
