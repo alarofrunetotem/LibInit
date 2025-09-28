@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 76
+-- @release 77
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
