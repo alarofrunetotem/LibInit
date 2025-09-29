@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 77
+-- @release 78
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -15,7 +15,7 @@ local me, ns = ...
 ---@diagnostic disable-next-line: undefined-field
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):16:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 76
+local MINOR_VERSION = 78
 local LibStub=LibStub
 local dprint=function(...) end
 local encapsulate  = function ()
@@ -148,7 +148,7 @@ local function ParseDebugStack(stack)
   --if not file then file, line = stack:match("[\\//]([/\\%w_]*%.[Ll][Uu][Aa]):(%d-):") end  -- Then Interface/AddOns/
   --file=nil
   -- local regexp="@Interface[\\/]AddOns[\\/]([%w_]*)[\\/]([%w_\\/]*)\"%]:(%d-):"
-  local regexp="@Interface[\\/]AddOns[\\/]([^\\/]*)[\\/]([%w_\\/]*)[^:]+:(%d-):"
+  local regexp="Interface[\\/]AddOns[\\/]([^\\/]*)[\\/]([%w_\\.\\/]*)[^:]+:(%d-):"
   local addon,file, line = stack:match(regexp)
   addon=addon or 'unknown'
   return file or '*',line or 0
@@ -461,6 +461,12 @@ function lib:Debug(...)
     local header=format("|cffff9900%s|r|cffc0c0c0[%s:%d]|r",tostring(self),ParseDebugStack(debugstack(2,1,0)))
     AceConsole:Print(header,...)
   end
+end
+function lib:EnableDebug()
+  self.debug = true
+end
+function lib:DisableDebug()
+  self.debug = false
 end
 
 --- Generic.
