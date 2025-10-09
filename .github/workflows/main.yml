@@ -20,6 +20,7 @@ jobs:
 
     # we can run our steps on pretty much anything, but the "ubuntu-latest" image is a safe bet
     runs-on: ubuntu-latest
+    environment: github-pages
 
     # specify the environment variables used by the packager, matching the secrets from the project on GitHub
     env:
@@ -54,6 +55,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}        
 
       # once cloned, we just run the GitHub Action for the packager project
 #     - name: Package and release
