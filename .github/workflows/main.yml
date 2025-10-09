@@ -20,7 +20,8 @@ jobs:
 
     permissions:
       id-token: write
-      contents: read    
+      contents: read
+      pages: write
 
     # we can run our steps on pretty much anything, but the "ubuntu-latest" image is a safe bet
     runs-on: ubuntu-latest
