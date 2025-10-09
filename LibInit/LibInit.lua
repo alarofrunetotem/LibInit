@@ -1,7 +1,7 @@
 --- Main methods directly available in your addon
 -- @module lib
 -- @author Alar of Runetotem
--- @release 80
+-- @release 81
 -- @set sort=true
 -- @usage
 -- -- Create a new addon this way:
@@ -15,7 +15,7 @@ local me, ns = ...
 ---@diagnostic disable-next-line: undefined-field
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):16:")) -- Always check line number in regexp and file
 local MAJOR_VERSION = "LibInit"
-local MINOR_VERSION = 80
+local MINOR_VERSION = 81
 local LibStub=LibStub
 local dprint=function(...) end
 local encapsulate  = function ()
