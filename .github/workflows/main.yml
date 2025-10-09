@@ -16,7 +16,7 @@ on:
 jobs:
 
   # "release" is a job, you can name it anything you want
-  release:
+  docbuild:
 
     permissions:
       id-token: write
@@ -47,7 +47,17 @@ jobs:
       - name: Generate docs with LDoc
         uses: lunarmodules/ldoc@v1
         with:
-          args: --dir docs LibInit/LibInit.lua LibInit/factory.lua LibInit/colorize.lua
+          args: --dir docs/LibInit LibInit/LibInit.lua
+
+      - name: Generate docs with LDoc
+        uses: lunarmodules/ldoc@v1
+        with:
+          args: --dir docs/Colorize LibInit/colorize.lua
+
+      - name: Generate docs with LDoc
+        uses: lunarmodules/ldoc@v1
+        with:
+          args: --dir docs/Factory LibInit/factory.lua
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
