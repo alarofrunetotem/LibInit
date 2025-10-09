@@ -18,6 +18,10 @@ jobs:
   # "release" is a job, you can name it anything you want
   release:
 
+    permissions:
+      id-token: write
+      contents: read    
+
     # we can run our steps on pretty much anything, but the "ubuntu-latest" image is a safe bet
     runs-on: ubuntu-latest
     environment: github-pages
@@ -42,7 +46,7 @@ jobs:
       - name: Generate docs with LDoc
         uses: lunarmodules/ldoc@v1
         with:
-          args: --dir docs LibInit/*.lua
+          args: --dir docs LibInit/LibInit.lua LibInit/factory.lua LibInit/colorize.lua
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -50,13 +54,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-            # Upload entire repository
           path: 'docs'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}        
 
       # once cloned, we just run the GitHub Action for the packager project
 #     - name: Package and release
