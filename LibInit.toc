@@ -24,6 +24,7 @@
 ## X-License: GPL v3
 ## X-eMail: alar@aspide.it
 ## X-Date: @project-date-iso@
+## X-Curse-Project-ID: 86172
 ## X-Embeds:
 embeds.xml
 LibInit.lua
