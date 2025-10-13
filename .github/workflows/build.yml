@@ -18,7 +18,7 @@ on:
 jobs:
 
   # "release" is a job, you can name it anything you want
-  docbuild:
+  AddonBuild:
 
     permissions:
       id-token: write
