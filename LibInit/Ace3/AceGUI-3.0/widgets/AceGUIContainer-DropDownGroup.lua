@@ -1,4 +1,3 @@
----@diagnostic disable: invisible, assign-type-mismatch
 --[[-----------------------------------------------------------------------------
 DropdownGroup Container
 Container controlled by a dropdown on the top.
