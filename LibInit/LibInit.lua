@@ -18,14 +18,8 @@ local MAJOR_VERSION = "LibInit"
 local MINOR_VERSION = 84
 local LibStub       = LibStub
 local dprint        = function(...) end
-dprint              = print
-local encapsulate   = function()
-	if LibDebug and AlarDbg then
-		LibDebug()
-		dprint = print
-	end
-end
-encapsulate()
+print("AlarDbg", _G.AlarDbg)
+if _G.AlarDbg then dprint = print end
 local obj, old = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
 if obj then
 	dprint(strconcat("Loading ", MAJOR_VERSION, '.', MINOR_VERSION, ' from ', __FILE__))
@@ -474,13 +468,15 @@ function lib:GetLocale()
 	return AceLocale:GetLocale(self.name)
 end
 
+local prettyPrint
 function lib:Notice(...)
-	if self.db and not self.db.silent then AceConsole:Print("|cff909090" .. tostring(self) .. "|r:", ...) end
+	if self.db and not self.db.global.silent then
+		AceConsole:Print("|cff909090" .. tostring(self) .. "|r:", ...)
+	end
 end
 
-local prettyPrint
 function lib:Debug(...)
-	if self.debug then
+	if (self.db and self.db.global.debug) or self.debug then
 		-- local file,line=ParseDebugStack(debugstack(2,1,0))
 		-- local header="|cffff9900"..tostring(self).."|r"
 		-- AceConsole:Print(header..'('..file..':'..line..')',...)
@@ -853,23 +849,29 @@ local function loadOptionsTable(self)
 				func = "Gui",
 				guiHidden = true,
 			},
-			--[===[
 			help = {
-				name="HELP",
-				desc="Show help",
-				type="execute",
-				func="Help",
-				guiHidden=true,
+				name = "HELP",
+				desc = "Show help",
+				type = "execute",
+				func = "Help",
+				guiHidden = true,
 			},
 			debug = {
-				name="DBG",
-				desc="Enable debug",
-				type="execute",
-				func="Debug",
-				guiHidden=true,
-				cmdHidden=true,
+				name = "DBG",
+				desc = "Enable debug",
+				type = "execute",
+				func = function(a)
+					local command = a.input:upper()
+					if (command == "DEBUG ON") then
+						self.db.global.debug = true
+					elseif (command == "DEBUG OFF") then
+						self.db.global.debug = false
+					end
+					self:Print("Debug is now", self.db.global.debug and "true" or "false")
+				end,
+				guiHidden = true,
+				cmdHidden = true
 			},
-]===]
 			silent = {
 				name = "SILENT",
 				desc = "Eliminates startup messages",
@@ -2453,45 +2455,7 @@ local reserved =
 	["until"] = true,
 	["while"] = true
 }
-local async = true
 local keytable = {}
-showTable = function(tbl)
-	AceConsole:Print("Showing table", tbl)
-	-- DEFAULT_CHAT_FRAME = GetChatFrame("LibDebug")
-
-	DEFAULT_CHAT_FRAME:AddMessage("       " .. _G.tostring(tbl) .. (async and " async" or ""), 0.5, 0.5, 0.5)
-
-	local meta = getmetatable(tbl)
-
-	if type(meta) == "table" then
-		DEFAULT_CHAT_FRAME:AddMessage("|cff808080@meta|r = " .. tostring(meta))
-	end
-
-	local n = #tbl
-	-- Do number keys first, in order.
-	for i = 1, n do
-		DEFAULT_CHAT_FRAME:AddMessage("[" .. tostring(i) .. "] = " .. tostring(tbl[i]))
-		if coroutine.running() then coroutine.yield(true) end
-	end
-	-- Everything else.
-	-- Sort alphanumeric keys
-	wipe(keytable)
-	for key, _ in pairs(tbl) do
-		tinsert(keytable, key)
-	end
-	table.sort(keytable, function(a, b) return tostring(a) < tostring(b) end)
-	for _, key in ipairs(keytable) do
-		local value = tbl[key]
-		if type(key) ~= "number" or floor(key) ~= key or key < 1 or key > n then
-			if type(key) == "string" and not reserved[key] and key:find("^[%a_][%w_]*$") then
-				DEFAULT_CHAT_FRAME:AddMessage(key .. " = " .. tostring(value))
-			else
-				DEFAULT_CHAT_FRAME:AddMessage("[" .. tostring(key) .. "] = " .. tostring(value))
-			end
-		end
-		if coroutine.running() then coroutine.yield(true) end
-	end
-end
 local formatter = {} --#formatters
 local function badformat(var)
 	return "|cffff8000" .. tostring(var) .. "|r"
@@ -2547,6 +2511,110 @@ end
 -- |Hlibinit:id|h clicks via LinkUtil (retail). Replaces legacy ChatFrame_OnHyperlinkShow hook.
 local LIBINIT_LINK_TYPE = "libinit"
 
+function formatter.table(val)
+	local id = tables[val]
+
+	if not id then
+		id = next_free
+		next_free = next_free + 1
+		tables[val] = id
+	end
+
+	rtables[id] = val
+	local name = tostring(val)
+
+	return ("|cff40cc40|H" .. LIBINIT_LINK_TYPE .. ":%d|h[%s]|h|r"):format(id, name)
+end
+
+local function myToString(var)
+	return (formatter[type(var)] or badformat)(var)
+end
+
+local tableViewerSerial = 0
+local TABLE_VIEWER_WIDTH = 540
+local TABLE_VIEWER_LINE_HEIGHT = 14
+
+local function collectTableLines(tbl, lines)
+	tinsert(lines, "       " .. myToString(tbl))
+	local meta = getmetatable(tbl)
+	if type(meta) == "table" then
+		tinsert(lines, "|cff808080@meta|r = " .. myToString(meta))
+	end
+	local n = #tbl
+	for i = 1, n do
+		tinsert(lines, "[" .. myToString(i) .. "] = " .. myToString(tbl[i]))
+	end
+	wipe(keytable)
+	for key, _ in pairs(tbl) do
+		tinsert(keytable, key)
+	end
+	table.sort(keytable, function(a, b) return tostring(a) < tostring(b) end)
+	for _, key in ipairs(keytable) do
+		local value = tbl[key]
+		if type(key) ~= "number" or floor(key) ~= key or key < 1 or key > n then
+			if type(key) == "string" and not reserved[key] and key:find("^[%a_][%w_]*$") then
+				tinsert(lines, key .. " = " .. myToString(value))
+			else
+				tinsert(lines, "[" .. myToString(key) .. "] = " .. myToString(value))
+			end
+		end
+	end
+end
+
+local function createTableViewerFrame(tbl, lines)
+	tableViewerSerial = tableViewerSerial + 1
+	local serial = tableViewerSerial
+	local title = (tbl.GetName and tbl:GetName()) or tostring(tbl)
+	local frameName = "LibInitTableView" .. serial
+	local frame = CreateFrame("Frame", frameName, UIParent, "BasicFrameTemplateWithInset")
+	frame:SetFrameStrata("DIALOG")
+	frame:SetSize(560, 420)
+	frame:SetPoint("CENTER", UIParent, "CENTER", serial * 28, -serial * 28)
+	frame:EnableMouse(true)
+	frame:SetMovable(true)
+	frame:RegisterForDrag("LeftButton")
+	frame:SetScript("OnDragStart", frame.StartMoving)
+	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+	frame.TitleText:SetText(("%s (#%d)"):format(title, serial))
+
+	local scroll = CreateFrame("ScrollFrame", frameName .. "Scroll", frame, "UIPanelScrollFrameTemplate")
+	scroll:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -28)
+	scroll:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 8)
+
+	local content = CreateFrame("ScrollingMessageFrame", frameName .. "Content", scroll)
+	content:SetSize(TABLE_VIEWER_WIDTH, math.max(#lines, 1) * TABLE_VIEWER_LINE_HEIGHT)
+	content:SetFontObject(GameFontHighlightSmall)
+	content:SetHyperlinksEnabled(true)
+	content:SetFading(false)
+	content:SetMaxLines(100000)
+	content:SetSpacing(2)
+	content:SetWidth(TABLE_VIEWER_WIDTH)
+	content:SetJustifyH("LEFT")
+
+	for _, line in ipairs(lines) do
+		content:AddMessage(line)
+	end
+
+	scroll:SetScrollChild(content)
+	scroll:UpdateScrollChildRect()
+	frame:Show()
+	return frame
+end
+
+showTable = function(tbl)
+	if type(tbl) ~= "table" then
+		AceConsole:Print("showTable expects a table, got", type(tbl))
+		return
+	end
+	local lines = {}
+	collectTableLines(tbl, lines)
+	createTableViewerFrame(tbl, lines)
+end
+
+function lib:ShowTable(tbl)
+	return showTable(tbl)
+end
+
 local function ShowLibDebugTableById(id)
 	local tbl = rtables[id]
 	if not tbl and LibDebug and LibDebug.GetDebugTable then
@@ -2556,21 +2624,7 @@ local function ShowLibDebugTableById(id)
 		_G.print("Apologies, that table seems to have been garbage collected.")
 		return
 	end
-	if async then
-		local co = coroutine.wrap(function()
-			showTable(tbl, true)
-		end)
-		local interval = 0.005
-		local function repeater()
-			local ok, keepGoing = pcall(co)
-			if ok and keepGoing then
-				C_Timer.After(interval, repeater)
-			end
-		end
-		repeater()
-	else
-		showTable(tbl, true)
-	end
+	showTable(tbl)
 end
 
 local function LibInit_LibDebugLinkHandler(link, text, linkData, contextData)
@@ -2588,25 +2642,6 @@ if LinkUtil and LinkUtil.RegisterLinkHandler and not lib.libdebugLinkHandlerRegi
 		LinkUtil.RegisterLinkHandler(LIBINIT_LINK_TYPE, LibInit_LibDebugLinkHandler)
 		lib.libdebugLinkHandlerRegistered = true
 	end
-end
-
-function formatter.table(val)
-	local id = tables[val]
-
-	if not id then
-		id = next_free
-		next_free = next_free + 1
-		tables[val] = id
-	end
-
-	rtables[id] = val
-	local name = val.GetName and val:GetName() or tostring(val)
-
-	return ("|cff40cc40|H" .. LIBINIT_LINK_TYPE .. ":%d|h[%s]|h|r"):format(id, name)
-end
-
-local function myToString(var)
-	return (formatter[type(var)] or badformat)(var)
 end
 
 function prettyPrint(header, ...)

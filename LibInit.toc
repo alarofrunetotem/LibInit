@@ -26,5 +26,5 @@
 ## X-Date: @project-date-iso@
 ## X-Curse-Project-ID: 87532
 ## X-Embeds:
-embeds.xml
 LibInit.lua
+embeds.xml
