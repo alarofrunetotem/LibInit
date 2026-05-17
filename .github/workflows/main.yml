@@ -7,8 +7,8 @@ name: Package and release
 # other branches or even pullrequests.
 on:
   push:
-    branches:
-      - beta/*
+    tags:
+      - '**'
 # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -16,22 +16,16 @@ on:
 jobs:
 
   # "release" is a job, you can name it anything you want
-  AddonBuild:
-
-    permissions:
-      id-token: write
-      contents: read
-      pages: write
+  release:
 
     # we can run our steps on pretty much anything, but the "ubuntu-latest" image is a safe bet
     runs-on: ubuntu-latest
-    environment: github-pages
 
     # specify the environment variables used by the packager, matching the secrets from the project on GitHub
     env:
       CF_API_KEY: ${{ secrets.CF_API_KEY }}
       WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
-      # WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}  # "GITHUB_TOKEN" is a secret always provided to the workflow
                                                  # for your own token, the name cannot start with "GITHUB_"
 
@@ -40,12 +34,11 @@ jobs:
 
       # we first have to clone the AddOn project, this is a required step
       - name: Clone project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0  # gets entire git history, needed for automatic changelogs
 
       # once cloned, we just run the GitHub Action for the packager project
       - name: Package and release
         uses: BigWigsMods/packager@v2
-        with:
-          args: -n {package-name}-{project-version}{nolib}{classic}{alpha}{beta}:{project-version}{classic}{nolib}{alpha}{beta}
+        # uses: alarofrunetotem/packager@subdirs-checkout
