@@ -19,3 +19,5 @@ ignore:
   - .project
   - .settings 
   - newlocale.lua
+  - expansion_check_simple.lua
+  - expansion_detector.lua
