@@ -104,6 +104,7 @@ if (_G.RAID_CLASS_COLORS) then
 	end
 end
 local numqualities=_G.NUM_ITEM_QUALITIES or 8
+print("Num qualities",numqualities)
 for i=1,numqualities do
 	local _,_,_,hex=C_Item.GetItemQualityColor(i)
 	local c=strlower(_G["ITEM_QUALITY"..i.."_DESC"])

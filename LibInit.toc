@@ -1,4 +1,9 @@
-## Interface: 120005
+## Interface: 120105, 120107
+## Interface-Forever: 16001
+## Interface-Camelot: 16001
+## Interface-Mists: 50504
+## Interface-Vanilla: 11509
+## Interface-Cata: 40402
 ## Title: LibInit
 ## Category: Libraries
 ## Category-deDE: Bibliotheken
